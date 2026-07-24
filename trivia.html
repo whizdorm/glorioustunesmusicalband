@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trivia Archive | Glorious Tunes Musical Band</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+    <style>
+        /* ===== RESET & BASE ===== */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary: #0f2a1a;
+            --color-primary-light: #1a3d2a;
+            --color-primary-mid: #2a5a3a;
+            --color-secondary: #2e7d32;
+            --color-accent: #d4a84c;
+            --color-accent-light: #f0d080;
+            --color-white: #ffffff;
+            --color-text-light: #f0f5ee;
+            --color-text-muted: #b8c4b0;
+            --shadow-accent: 0 4px 30px rgba(46, 125, 50, 0.30);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.45);
+            --radius: 12px;
+            --transition: 0.3s ease;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: var(--color-primary);
+            color: var(--color-text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--color-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-secondary);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-accent);
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .heading-serif {
+            font-family: "Playfair Display", serif;
+            font-weight: 700;
+        }
+
+        .accent-text {
+            color: var(--color-accent);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(15, 42, 26, 0.92);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(46, 125, 50, 0.2);
+            transition: var(--transition);
+        }
+
+        .header.scrolled {
+            background: rgba(15, 42, 26, 0.97);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .logo img {
+            height: 42px;
+            width: auto;
+            display: block;
+            transition: var(--transition);
+        }
+
+        .logo img:hover {
+            opacity: 0.85;
+        }
+
+        /* Hide old text-based logo */
+        .logo-text {
+            display: none;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav a {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text-muted);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            color: var(--color-white);
+            background: rgba(46, 125, 50, 0.15);
+        }
+
+        .nav a.active {
+            color: var(--color-accent);
+        }
+
+        .nav a.cta-nav {
+            background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
+            color: var(--color-white);
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 6px;
+        }
+
+        .nav a.cta-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-accent);
+            background: linear-gradient(135deg, #388e3c, #1b5e20);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 4px;
+            background: none;
+            border: none;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 26px;
+            height: 2.5px;
+            background: var(--color-white);
+            border-radius: 2px;
+            transition: var(--transition);
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* ===== PAGE HERO ===== */
+        .page-hero {
+            padding: 140px 0 60px;
+            background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-primary-light) 60%, #0f261a 100%);
+            border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+            position: relative;
+        }
+
+        .page-hero::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to top, var(--color-primary), transparent);
+            pointer-events: none;
+        }
+
+        .page-hero .container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .page-hero h1 {
+            font-size: 3.5rem;
+            font-family: "Playfair Display", serif;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .page-hero h1 .accent-text {
+            display: inline-block;
+            position: relative;
+        }
+
+        .page-hero h1 .accent-text::after {
+            content: "";
+            position: absolute;
+            bottom: 4px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-accent), transparent);
+            border-radius: 2px;
+        }
+
+        .page-hero p {
+            color: var(--color-text-muted);
+            font-size: 1.2rem;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        /* ===== SECTION ===== */
+        .section {
+            padding: 80px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .section-header .label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--color-secondary);
+            background: rgba(46, 125, 50, 0.12);
+            padding: 4px 16px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-family: "Playfair Display", serif;
+            font-weight: 700;
+            color: var(--color-white);
+        }
+
+        .section-header p {
+            color: var(--color-text-muted);
+            max-width: 560px;
+            margin: 12px auto 0;
+            font-size: 1.05rem;
+        }
+
+        /* ===== TRIVIA GRID ===== */
+        .trivia-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 28px;
+        }
+
+        .trivia-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius);
+            padding: 24px 28px;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .trivia-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(46, 125, 50, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: var(--shadow-card);
+        }
+
+        .trivia-card .question-number {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--color-accent);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .trivia-card .question-text {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--color-white);
+            margin-bottom: 12px;
+            flex: 1;
+        }
+
+        .trivia-card .answer-wrapper {
+            margin-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 12px;
+        }
+
+        .trivia-card .reveal-btn {
+            background: transparent;
+            border: 1px solid rgba(212, 168, 76, 0.3);
+            color: var(--color-accent);
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            font-family: "Inter", sans-serif;
+        }
+
+        .trivia-card .reveal-btn:hover {
+            background: rgba(212, 168, 76, 0.08);
+            border-color: var(--color-accent);
+        }
+
+        .trivia-card .answer-text {
+            margin-top: 8px;
+            color: var(--color-accent-light);
+            font-weight: 400;
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .trivia-card .answer-text.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--color-primary);
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 48px 0 32px;
+        }
+
+        .footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer .footer-brand img {
+            height: 32px;
+            width: auto;
+            display: block;
+        }
+
+        .footer .footer-brand .brand-text {
+            font-family: "Playfair Display", serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--color-white);
+        }
+
+        .footer .footer-brand .brand-text span {
+            color: var(--color-accent);
+        }
+
+        .footer .footer-links {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer .footer-links a {
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .footer .footer-links a:hover {
+            color: var(--color-accent);
+        }
+
+        .footer .footer-contact {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer .footer-contact a {
+            color: var(--color-accent);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .footer .footer-contact a:hover {
+            color: var(--color-accent-light);
+            text-decoration: underline;
+        }
+
+        .footer .footer-copy {
+            color: var(--color-text-muted);
+            font-size: 0.8rem;
+            width: 100%;
+            text-align: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .nav {
+                position: fixed;
+                top: 72px;
+                left: 0;
+                right: 0;
+                background: rgba(15, 42, 26, 0.98);
+                backdrop-filter: blur(14px);
+                flex-direction: column;
+                padding: 24px;
+                gap: 4px;
+                border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+                transform: translateY(-120%);
+                transition: var(--transition);
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .nav.open {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .nav a {
+                width: 100%;
+                text-align: center;
+                padding: 12px;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .page-hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .section {
+                padding: 56px 0;
+            }
+
+            .trivia-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .logo img {
+                height: 34px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-hero h1 {
+                font-size: 2rem;
+            }
+            .page-hero p {
+                font-size: 1rem;
+            }
+            .logo img {
+                height: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header" id="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Glorious Tunes Musical Band Logo" />
+            </a>
+
+            <nav class="nav" id="nav">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="history.html">Know Your History</a>
+                <a href="events.html">Events</a>
+                <a href="trivia.html" class="active">Trivia</a>
+            </nav>
+
+            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===== PAGE HERO ===== -->
+    <section class="page-hero">
+        <div class="container">
+            <h1>
+                Trivia <span class="accent-text">Archive</span>
+            </h1>
+            <p>
+                Test your knowledge with our collection of past trivia questions and answers
+                from GTMB events and gatherings.
+            </p>
+        </div>
+    </section>
+
+    <!-- ===== TRIVIA LIST ===== -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <span class="label">Archive</span>
+                <h2>Questions &amp; <span class="accent-text">Answers</span></h2>
+                <p>Explore the trivia archives — click "Reveal Answer" to see if you got it right.</p>
+            </div>
+
+            <div class="trivia-grid" id="triviaGrid">
+                <!-- Cards will be rendered dynamically from Firestore -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand">
+                <img src="logo.png" alt="Glorious Tunes Musical Band Logo" />
+                <div class="brand-text">GTMB <span>·</span> Glorious Tunes</div>
+            </div>
+
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="history.html">History</a>
+                <a href="events.html">Events</a>
+                <a href="trivia.html">Trivia</a>
+            </div>
+
+            <div class="footer-contact">
+                <span class="email-icon">✉️</span>
+                <a href="mailto:glorioustunesmusicalband@gmail.com">glorioustunesmusicalband@gmail.com</a>
+            </div>
+
+            <div class="footer-copy">
+                &copy; 2026 Glorious Tunes Musical Band. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script type="module">
+        import { loadTrivia, escapeHtml } from './script.js';
+
+        // ---- Hamburger ----
+        const hamburger = document.getElementById('hamburger');
+        const nav = document.getElementById('nav');
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            nav.classList.toggle('open');
+        });
+        document.querySelectorAll('.nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                nav.classList.remove('open');
+            });
+        });
+
+        // ---- Header scroll ----
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 30) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // ---- Load trivia from Firestore ----
+        const grid = document.getElementById('triviaGrid');
+
+        try {
+            const trivia = await loadTrivia();
+            if (!trivia || trivia.length === 0) {
+                grid.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px 20px;color:var(--color-text-muted);">No trivia questions available yet. Check back soon!</div>`;
+            } else {
+                grid.innerHTML = trivia.map((item, index) => `
+                    <div class="trivia-card">
+                        <div class="question-number">#${index + 1}</div>
+                        <div class="question-text">${escapeHtml(item.question)}</div>
+                        <div class="answer-wrapper">
+                            <button class="reveal-btn" data-answer="${escapeHtml(item.answer)}">Reveal Answer</button>
+                            <div class="answer-text">${escapeHtml(item.answer)}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // ---- Attach reveal logic ----
+                grid.querySelectorAll('.reveal-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const ans = this.nextElementSibling;
+                        const isShowing = ans.classList.contains('show');
+                        if (isShowing) {
+                            ans.classList.remove('show');
+                            this.textContent = 'Reveal Answer';
+                        } else {
+                            ans.classList.add('show');
+                            this.textContent = 'Hide Answer';
+                        }
+                    });
+                });
+            }
+        } catch (error) {
+            console.error('Error loading trivia:', error);
+            grid.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px 20px;color:var(--color-text-muted);">Failed to load trivia. Please try again later.</div>`;
+        }
+    </script>
+
+</body>
+</html>

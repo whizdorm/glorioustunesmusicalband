@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GTMB Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --color-primary: #0f2a1a;
+            --color-primary-light: #1a3d2a;
+            --color-secondary: #2e7d32;
+            --color-accent: #d4a84c;
+            --color-accent-light: #f0d080;
+            --color-white: #ffffff;
+            --color-text-light: #f0f5ee;
+            --color-text-muted: #b8c4b0;
+            --color-bg-card: rgba(255,255,255,0.04);
+            --radius: 12px;
+            --transition: 0.3s ease;
+            --shadow-card: 0 8px 32px rgba(0,0,0,0.45);
+            --sidebar-width: 260px;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: var(--color-primary);
+            color: var(--color-text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--color-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--color-secondary); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
+
+        /* ===== LOGIN ===== */
+        .login-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: var(--color-primary);
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 24px; padding: 24px;
+        }
+        .login-overlay.hidden { display: none; }
+        .login-box {
+            background: var(--color-bg-card);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius);
+            padding: 48px 40px;
+            max-width: 400px; width: 100%;
+            text-align: center;
+        }
+        .login-box h1 {
+            font-family: "Playfair Display", serif;
+            font-size: 2rem; color: var(--color-accent);
+            margin-bottom: 4px;
+        }
+        .login-box .sub {
+            color: var(--color-text-muted);
+            font-size: 0.9rem; margin-bottom: 24px;
+        }
+        .login-box label {
+            display: block; text-align: left;
+            font-size: 0.8rem; font-weight: 600;
+            color: var(--color-text-muted); margin-bottom: 4px;
+        }
+        .login-box input {
+            width: 100%; padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
+            color: var(--color-white);
+            font-size: 1rem; margin-bottom: 16px;
+            transition: var(--transition);
+            font-family: "Inter", sans-serif;
+        }
+        .login-box input:focus {
+            outline: none; border-color: var(--color-accent);
+            background: rgba(255,255,255,0.06);
+        }
+        .login-box .btn {
+            width: 100%; padding: 12px; border: none;
+            border-radius: 6px; font-weight: 600; font-size: 1rem;
+            cursor: pointer; transition: var(--transition);
+            font-family: "Inter", sans-serif;
+            background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
+            color: var(--color-white);
+        }
+        .login-box .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(46,125,50,0.30);
+        }
+        .login-error {
+            color: #ff6b6b; font-size: 0.85rem;
+            margin-top: 8px; display: none;
+        }
+        .login-error.show { display: block; }
+
+        /* ===== ADMIN LAYOUT ===== */
+        .admin-layout { display: none; min-height: 100vh; }
+        .admin-layout.active { display: flex; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(15,42,26,0.97);
+            border-right: 1px solid rgba(255,255,255,0.04);
+            padding: 24px 16px;
+            position: fixed; top: 0; left: 0; bottom: 0;
+            overflow-y: auto; z-index: 100;
+            transition: var(--transition);
+        }
+        .sidebar .brand {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 32px; padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .sidebar .brand img { height: 36px; width: auto; }
+        .sidebar .brand .brand-text {
+            font-family: "Playfair Display", serif;
+            font-weight: 700; font-size: 1.1rem;
+            color: var(--color-white);
+        }
+        .sidebar .brand .brand-text span { color: var(--color-accent); }
+        .sidebar .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 14px; border-radius: 6px;
+            color: var(--color-text-muted);
+            transition: var(--transition);
+            cursor: pointer; font-size: 0.9rem; font-weight: 500;
+            border: none; background: none; width: 100%; text-align: left;
+            font-family: "Inter", sans-serif;
+        }
+        .sidebar .nav-item:hover {
+            background: rgba(255,255,255,0.04);
+            color: var(--color-white);
+        }
+        .sidebar .nav-item.active {
+            background: rgba(46,125,50,0.12);
+            color: var(--color-accent);
+        }
+        .sidebar .nav-item .icon { font-size: 1.2rem; width: 24px; text-align: center; }
+        .sidebar .nav-group {
+            margin-top: 16px; padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+        .sidebar .nav-group-label {
+            font-size: 0.65rem; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--color-text-muted);
+            padding: 0 14px 8px; opacity: 0.5;
+        }
+        .sidebar .logout-btn {
+            margin-top: 24px; padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            color: #ff6b6b;
+        }
+        .sidebar .logout-btn:hover {
+            background: rgba(255,0,0,0.06);
+            color: #ff6b6b;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1; padding: 24px 32px 60px;
+            min-height: 100vh;
+        }
+        .page-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 32px;
+            flex-wrap: wrap; gap: 16px;
+        }
+        .page-header h2 {
+            font-family: "Playfair Display", serif;
+            font-size: 2rem; color: var(--color-white);
+        }
+        .page-header h2 .accent { color: var(--color-accent); }
+        .page-header .subtitle {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* ===== CARDS ===== */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+            gap: 16px; margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--color-bg-card);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius);
+            padding: 20px 24px; text-align: center;
+        }
+        .stat-card .number {
+            font-size: 2.5rem; font-weight: 700;
+            color: var(--color-accent);
+        }
+        .stat-card .label {
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+        }
+        .card {
+            background: var(--color-bg-card);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius);
+            padding: 24px 28px; margin-bottom: 24px;
+        }
+        .card .card-title {
+            font-size: 1.1rem; font-weight: 600;
+            color: var(--color-white); margin-bottom: 16px;
+        }
+        .card .card-title .badge {
+            font-size: 0.7rem;
+            background: rgba(46,125,50,0.15);
+            color: var(--color-accent);
+            padding: 2px 10px; border-radius: 12px;
+            margin-left: 8px;
+        }
+
+        /* ===== FORMS ===== */
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 0.8rem; font-weight: 600;
+            color: var(--color-text-muted); margin-bottom: 4px;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            color: var(--color-white);
+            font-size: 0.95rem; transition: var(--transition);
+            font-family: "Inter", sans-serif;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--color-accent);
+            background: rgba(255,255,255,0.06);
+        }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .form-group .helper {
+            color: var(--color-text-muted);
+            font-size: 0.75rem; margin-top: 4px;
+        }
+        .form-row {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .btn {
+            padding: 8px 20px; border: none;
+            border-radius: 6px; font-weight: 500; font-size: 0.9rem;
+            cursor: pointer; transition: var(--transition);
+            font-family: "Inter", sans-serif;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
+            color: var(--color-white);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(46,125,50,0.30);
+        }
+        .btn-accent {
+            background: var(--color-accent);
+            color: var(--color-primary);
+        }
+        .btn-accent:hover { background: var(--color-accent-light); }
+        .btn-danger {
+            background: rgba(255,0,0,0.15);
+            color: #ff6b6b;
+        }
+        .btn-danger:hover { background: rgba(255,0,0,0.25); }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--color-text-muted);
+        }
+        .btn-outline:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+        .btn-sm { padding: 4px 12px; font-size: 0.8rem; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        /* ===== TABLES / LISTS ===== */
+        .item-list { display: flex; flex-direction: column; gap: 8px; }
+        .item-row {
+            display: flex; justify-content: space-between;
+            align-items: center; padding: 10px 14px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);
+            transition: var(--transition);
+            flex-wrap: wrap; gap: 8px;
+        }
+        .item-row:hover { background: rgba(255,255,255,0.04); }
+        .item-row .item-info { flex: 1; min-width: 150px; }
+        .item-row .item-info .title { color: var(--color-white); font-weight: 500; }
+        .item-row .item-info .meta { color: var(--color-text-muted); font-size: 0.8rem; }
+        .item-row .item-actions { display: flex; gap: 6px; }
+        .empty-state {
+            color: var(--color-text-muted);
+            text-align: center; padding: 40px 20px;
+            font-size: 0.95rem;
+        }
+
+        /* ===== FLYER UPLOAD ===== */
+        .flyer-upload-area {
+            border: 2px dashed rgba(46,125,50,0.15);
+            border-radius: var(--radius);
+            padding: 20px; text-align: center;
+            transition: var(--transition);
+            background: rgba(255,255,255,0.02);
+            margin-bottom: 12px;
+        }
+        .flyer-upload-area:hover { border-color: rgba(46,125,50,0.3); }
+        .flyer-upload-area .upload-label {
+            display: inline-block;
+            background: var(--color-secondary);
+            color: var(--color-white);
+            padding: 8px 20px; border-radius: 6px;
+            font-weight: 600; cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+        .flyer-upload-area .upload-label:hover {
+            background: #1b5e20;
+            transform: scale(1.02);
+        }
+        .flyer-upload-area input[type="file"] { display: none; }
+        .flyer-upload-area .file-name {
+            color: var(--color-text-muted);
+            font-size: 0.85rem; margin-top: 8px;
+        }
+        .flyer-upload-area .flyer-preview {
+            margin-top: 12px; border-radius: var(--radius);
+            overflow: hidden; display: none;
+            max-height: 300px;
+        }
+        .flyer-upload-area .flyer-preview img {
+            width: 100%; height: auto; max-height: 300px;
+            object-fit: contain; display: block;
+        }
+        .flyer-upload-area .flyer-preview.show { display: block; }
+        .flyer-upload-area .remove-flyer-btn {
+            margin-top: 8px;
+            background: rgba(255,0,0,0.1);
+            color: #ff6b6b; border: none;
+            padding: 4px 14px; border-radius: 4px;
+            cursor: pointer; font-size: 0.8rem;
+            transition: var(--transition);
+        }
+        .flyer-upload-area .remove-flyer-btn:hover {
+            background: rgba(255,0,0,0.2);
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: var(--color-secondary);
+            color: var(--color-white);
+            padding: 12px 24px; border-radius: var(--radius);
+            font-weight: 500; box-shadow: var(--shadow-card);
+            z-index: 999; opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition);
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.error { background: #c0392b; }
+
+        /* ===== RESPONSIVE ===== */
+        .mobile-toggle {
+            display: none;
+            background: none; border: none;
+            color: var(--color-white); font-size: 1.5rem;
+            cursor: pointer; padding: 4px;
+        }
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 16px; }
+            .mobile-toggle { display: block; }
+            .form-row { grid-template-columns: 1fr; }
+            .page-header { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 480px) {
+            .login-box { padding: 32px 20px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .item-row { flex-direction: column; align-items: stretch; }
+            .item-row .item-actions { justify-content: flex-end; }
+            .card { padding: 16px; }
+        }
+
+        /* ===== EXECUTIVE EDITOR ===== */
+        .executive-role-tabs {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+        }
+        .executive-role-tabs .role-tab {
+            padding: 6px 16px; border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: transparent; color: var(--color-text-muted);
+            cursor: pointer; transition: var(--transition);
+            font-size: 0.8rem; font-family: "Inter", sans-serif;
+        }
+        .executive-role-tabs .role-tab:hover {
+            border-color: rgba(255,255,255,0.15);
+            color: var(--color-white);
+        }
+        .executive-role-tabs .role-tab.active {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+            background: rgba(212,168,76,0.06);
+        }
+        .executive-role-content { display: none; }
+        .executive-role-content.active { display: block; }
+
+        /* ===== TRIVIA BULK IMPORT ===== */
+        .bulk-import-area {
+            border: 2px dashed rgba(46,125,50,0.15);
+            border-radius: var(--radius);
+            padding: 24px; text-align: center;
+            transition: var(--transition);
+            background: rgba(255,255,255,0.02);
+            margin-top: 12px;
+        }
+        .bulk-import-area:hover { border-color: rgba(46,125,50,0.3); }
+        .bulk-import-area textarea {
+            width: 100%; min-height: 120px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 6px; color: var(--color-white);
+            padding: 12px; font-family: "Inter", sans-serif;
+            font-size: 0.9rem; resize: vertical;
+        }
+        .bulk-import-area textarea:focus {
+            outline: none; border-color: var(--color-accent);
+        }
+        .bulk-import-area .hint {
+            color: var(--color-text-muted);
+            font-size: 0.8rem; margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LOGIN OVERLAY ===== -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h1>🎵 GTMB</h1>
+            <div class="sub">Admin Panel</div>
+            <label for="emailInput">Email</label>
+            <input type="email" id="emailInput" placeholder="admin@gtmb.com" />
+            <label for="passwordInput">Password</label>
+            <input type="password" id="passwordInput" placeholder="••••••••" />
+            <button class="btn" id="loginBtn">Login</button>
+            <div class="login-error" id="loginError">Invalid credentials or not an admin.</div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ===== ADMIN LAYOUT ===== -->
+    <div class="admin-layout" id="adminLayout">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <img src="logo.png" alt="GTMB" />
+                <div class="brand-text">GTMB <span>Admin</span></div>
+            </div>
+            <button class="nav-item active" data-page="dashboard"><span class="icon">📊</span> Dashboard</button>
+            <button class="nav-item" data-page="home"><span class="icon">🏠</span> Home Page</button>
+            <button class="nav-item" data-page="about"><span class="icon">📖</span> About Page</button>
+            <button class="nav-item" data-page="history"><span class="icon">🏛️</span> History Page</button>
+            <button class="nav-item" data-page="events"><span class="icon">📅</span> Events Page</button>
+            <button class="nav-item" data-page="trivia"><span class="icon">🧩</span> Trivia Archive</button>
+            <div class="nav-group">
+                <div class="nav-group-label">Data Management</div>
+                <button class="nav-item" data-page="executives"><span class="icon">👥</span> Executives</button>
+                <button class="nav-item" data-page="settings"><span class="icon">⚙️</span> Settings</button>
+            </div>
+            <button class="nav-item logout-btn" id="logoutBtn"><span class="icon">🚪</span> Logout</button>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h2 id="pageTitle">Dashboard</h2>
+                    <div class="subtitle" id="pageSubtitle">Overview of your GTMB website content</div>
+                </div>
+                <button class="mobile-toggle" id="mobileToggle">☰</button>
+            </div>
+            <div id="pageContent"></div>
+        </main>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ======================== SCRIPTS ============================ -->
+    <!-- ============================================================ -->
+    <script type="module">
+        // ============================================================
+        // IMPORTS
+        // ============================================================
+        import {
+            loadAllData,
+            saveAllData,
+            signIn,
+            signOut,
+            getCurrentUser,
+            isAdmin,
+            createAdminUser,
+            onAuthChange,
+            addTriviaItem,
+            deleteTriviaItem,
+            updateExecutives,
+            updatePassword,
+            escapeHtml,
+            showToast,
+            DEFAULT_DATA
+        } from './script.js';
+
+        // ============================================================
+        // GLOBALS
+        // ============================================================
+        let appData = null;
+        let currentPage = 'dashboard';
+        let activeExecRole = 'president';
+        let editingEventIndex = -1;
+
+        // ============================================================
+        // TOAST WRAPPER
+        // ============================================================
+        function toast(message, isError = false) {
+            showToast(message, isError);
+        }
+
+        // ============================================================
+        // AUTH - Login
+        // ============================================================
+        const loginBtn = document.getElementById('loginBtn');
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginError = document.getElementById('loginError');
+
+        loginBtn.addEventListener('click', async function() {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            if (!email || !password) {
+                loginError.textContent = 'Please enter both email and password.';
+                loginError.classList.add('show');
+                return;
+            }
+            const result = await signIn(email, password);
+            if (result.success) {
+                const user = result.user;
+                const admin = await isAdmin(user);
+                if (admin) {
+                    loginError.classList.remove('show');
+                    localStorage.setItem('gtmb_admin_logged_in', 'true');
+                    checkAuth();
+                    toast('Welcome, Admin!');
+                } else {
+                    await signOut();
+                    loginError.textContent = 'You are not authorized as an admin.';
+                    loginError.classList.add('show');
+                }
+            } else {
+                loginError.textContent = 'Invalid email or password.';
+                loginError.classList.add('show');
+            }
+        });
+
+        passwordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') loginBtn.click(); });
+        emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') loginBtn.click(); });
+
+        // ============================================================
+        // AUTH - Logout
+        // ============================================================
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
+            await signOut();
+            localStorage.removeItem('gtmb_admin_logged_in');
+            checkAuth();
+            toast('Logged out successfully');
+        });
+
+        // ============================================================
+        // AUTH - State Listener
+        // ============================================================
+        onAuthChange(async (user) => {
+            if (user) {
+                const admin = await isAdmin(user);
+                if (admin) {
+                    localStorage.setItem('gtmb_admin_logged_in', 'true');
+                } else {
+                    await signOut();
+                    localStorage.removeItem('gtmb_admin_logged_in');
+                    checkAuth();
+                }
+            } else {
+                localStorage.removeItem('gtmb_admin_logged_in');
+                checkAuth();
+            }
+        });
+
+        // ============================================================
+        // CHECK AUTH & LOAD DATA
+        // ============================================================
+        async function checkAuth() {
+            const user = getCurrentUser();
+            if (user && await isAdmin(user)) {
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('adminLayout').classList.add('active');
+                appData = await loadAllData();
+                renderPage('dashboard');
+            } else {
+                document.getElementById('loginOverlay').classList.remove('hidden');
+                document.getElementById('adminLayout').classList.remove('active');
+            }
+        }
+
+        // ============================================================
+        // SIDEBAR NAVIGATION
+        // ============================================================
+        const navItems = document.querySelectorAll('.sidebar .nav-item:not(.logout-btn)');
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const page = this.dataset.page;
+                navItems.forEach(n => n.classList.remove('active'));
+                this.classList.add('active');
+                renderPage(page);
+                document.getElementById('sidebar').classList.remove('open');
+            });
+        });
+
+        document.getElementById('mobileToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // ============================================================
+        // RENDER ENGINE
+        // ============================================================
+        function renderPage(page) {
+            currentPage = page;
+            const container = document.getElementById('pageContent');
+            const titleEl = document.getElementById('pageTitle');
+            const subEl = document.getElementById('pageSubtitle');
+
+            switch (page) {
+                case 'dashboard':
+                    titleEl.innerHTML = '📊 Dashboard';
+                    subEl.textContent = 'Overview of your GTMB website content';
+                    container.innerHTML = renderDashboard();
+                    break;
+                case 'home':
+                    titleEl.innerHTML = '🏠 Home Page';
+                    subEl.textContent = 'Edit the content of your homepage';
+                    container.innerHTML = renderHomeEditor();
+                    break;
+                case 'about':
+                    titleEl.innerHTML = '📖 About Page';
+                    subEl.textContent = 'Edit the content of your about page';
+                    container.innerHTML = renderAboutEditor();
+                    break;
+                case 'history':
+                    titleEl.innerHTML = '🏛️ History Page';
+                    subEl.textContent = 'Edit the content of your history page';
+                    container.innerHTML = renderHistoryEditor();
+                    break;
+                case 'events':
+                    titleEl.innerHTML = '📅 Events Page';
+                    subEl.textContent = 'Edit the content of your events page';
+                    container.innerHTML = renderEventsEditor();
+                    break;
+                case 'trivia':
+                    titleEl.innerHTML = '🧩 Trivia Archive';
+                    subEl.textContent = 'Manage trivia questions and answers';
+                    container.innerHTML = renderTriviaEditor();
+                    break;
+                case 'executives':
+                    titleEl.innerHTML = '👥 Executives';
+                    subEl.textContent = 'Manage executive lists for all roles';
+                    container.innerHTML = renderExecutivesEditor();
+                    break;
+                case 'settings':
+                    titleEl.innerHTML = '⚙️ Settings';
+                    subEl.textContent = 'Admin panel settings';
+                    container.innerHTML = renderSettings();
+                    break;
+                default:
+                    container.innerHTML = '<p>Page not found</p>';
+            }
+        }
+
+        // ============================================================
+        // DASHBOARD
+        // ============================================================
+        function renderDashboard() {
+            if (!appData) return '<p>Loading...</p>';
+            const totalTrivia = appData.trivia.length;
+            const totalExecs = Object.values(appData.executives).reduce((sum, arr) => sum + arr.length, 0);
+            const totalPastEvents = appData.pages.events.pastEvents.length;
+            const totalUpcoming = appData.pages.events.upcomingEvents.length;
+
+            return `
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="number">${totalTrivia}</div><div class="label">Trivia Questions</div></div>
+                    <div class="stat-card"><div class="number">${totalExecs}</div><div class="label">Total Executives</div></div>
+                    <div class="stat-card"><div class="number">${totalPastEvents}</div><div class="label">Past Events</div></div>
+                    <div class="stat-card"><div class="number">${totalUpcoming}</div><div class="label">Upcoming Events</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+                    <div class="card">
+                        <div class="card-title">Quick Links</div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <a href="index.html" target="_blank" style="color:var(--color-accent);">View Homepage →</a>
+                            <a href="about.html" target="_blank" style="color:var(--color-accent);">View About Page →</a>
+                            <a href="history.html" target="_blank" style="color:var(--color-accent);">View History Page →</a>
+                            <a href="events.html" target="_blank" style="color:var(--color-accent);">View Events Page →</a>
+                            <a href="trivia.html" target="_blank" style="color:var(--color-accent);">View Trivia Page →</a>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Data Summary</div>
+                        <div style="display:flex;flex-direction:column;gap:4px;color:var(--color-text-muted);font-size:0.9rem;">
+                            <div>📝 Trivia: <strong style="color:var(--color-white);">${totalTrivia}</strong> questions</div>
+                            <div>👥 Executives: <strong style="color:var(--color-white);">${totalExecs}</strong> across ${Object.keys(appData.executives).length} roles</div>
+                            <div>📅 Past Events: <strong style="color:var(--color-white);">${totalPastEvents}</strong> recorded</div>
+                            <div>📅 Upcoming Events: <strong style="color:var(--color-white);">${totalUpcoming}</strong> scheduled</div>
+                            <div>📄 Pages: <strong style="color:var(--color-white);">5</strong> content pages</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Quick Actions</div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <button class="btn btn-primary btn-sm" onclick="window.navigateTo('trivia')">➕ Add Trivia</button>
+                            <button class="btn btn-primary btn-sm" onclick="window.navigateTo('executives')">👥 Manage Executives</button>
+                            <button class="btn btn-primary btn-sm" onclick="window.navigateTo('events')">📅 Manage Events</button>
+                            <button class="btn btn-outline btn-sm" onclick="window.exportData()">📤 Export All Data</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // NAVIGATE HELPER
+        // ============================================================
+        window.navigateTo = function(page) {
+            navItems.forEach(n => n.classList.remove('active'));
+            const target = document.querySelector(`.nav-item[data-page="${page}"]`);
+            if (target) target.classList.add('active');
+            renderPage(page);
+        };
+
+        // ============================================================
+        // EXPORT DATA
+        // ============================================================
+        window.exportData = function() {
+            if (!appData) return;
+            const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gtmb_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast('Data exported successfully!');
+        };
+
+        // ============================================================
+        // HOME PAGE EDITOR
+        // ============================================================
+        function renderHomeEditor() {
+            const home = appData.pages.home;
+            return `
+                <div class="card">
+                    <div class="card-title">Hero Section</div>
+                    <div class="form-group">
+                        <label>Hero Title</label>
+                        <input id="homeHeroTitle" value="${escapeHtml(home.heroTitle)}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Hero Tagline</label>
+                        <textarea id="homeHeroTagline" rows="3">${escapeHtml(home.heroTagline)}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Badge Title</label>
+                        <input id="homeBadgeTitle" value="${escapeHtml(home.heroBadgeTitle)}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Badge Items (one per line)</label>
+                        <textarea id="homeBadgeItems" rows="3">${home.heroBadgeItems.join('\n')}</textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.saveHomeHero()">Save Hero Section</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">Constitution Highlights</div>
+                    <div class="form-group">
+                        <label>Highlights (one per line)</label>
+                        <textarea id="homeConstitutionHighlights" rows="4">${home.constitutionHighlights.join('\n')}</textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.saveHomeConstitution()">Save Constitution Highlights</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">Honorary Membership Cards</div>
+                    <div id="homeHonoraryList">
+                        ${home.honoraryCards.map((card, i) => `
+                            <div style="display:grid;grid-template-columns:1fr 2fr 2fr;gap:8px;margin-bottom:8px;align-items:center;background:rgba(255,255,255,0.02);padding:8px 12px;border-radius:6px;">
+                                <input value="${escapeHtml(card.icon)}" placeholder="Icon" id="h_icon_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                                <input value="${escapeHtml(card.title)}" placeholder="Title" id="h_title_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                                <input value="${escapeHtml(card.desc)}" placeholder="Description" id="h_desc_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm" onclick="window.addHonoraryCard()">➕ Add Card</button>
+                        <button class="btn btn-primary" onclick="window.saveHomeHonorary()">Save Honorary Cards</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Trivia Teaser</div>
+                    <div class="form-group">
+                        <label>Featured Question</label>
+                        <input id="homeTriviaQuestion" value="${escapeHtml(home.triviaTeaser.question)}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Answer / Link Text</label>
+                        <input id="homeTriviaAnswer" value="${escapeHtml(home.triviaTeaser.answer)}" />
+                    </div>
+                    <button class="btn btn-primary" onclick="window.saveHomeTriviaTeaser()">Save Trivia Teaser</button>
+                </div>
+            `;
+        }
+
+        window.saveHomeHero = async function() {
+            const home = appData.pages.home;
+            home.heroTitle = document.getElementById('homeHeroTitle').value;
+            home.heroTagline = document.getElementById('homeHeroTagline').value;
+            home.heroBadgeTitle = document.getElementById('homeBadgeTitle').value;
+            home.heroBadgeItems = document.getElementById('homeBadgeItems').value.split('\n').filter(s => s.trim());
+            await saveAllData(appData);
+            toast('Home hero section saved!');
+        };
+
+        window.saveHomeConstitution = async function() {
+            appData.pages.home.constitutionHighlights = document.getElementById('homeConstitutionHighlights').value.split('\n').filter(s => s.trim());
+            await saveAllData(appData);
+            toast('Constitution highlights saved!');
+        };
+
+        window.addHonoraryCard = function() {
+            appData.pages.home.honoraryCards.push({ icon: '🏅', title: 'New Honorary', desc: 'Description here' });
+            renderPage('home');
+            toast('New honorary card added!');
+        };
+
+        window.saveHomeHonorary = async function() {
+            const cards = appData.pages.home.honoraryCards;
+            cards.forEach((card, i) => {
+                card.icon = document.getElementById(`h_icon_${i}`).value;
+                card.title = document.getElementById(`h_title_${i}`).value;
+                card.desc = document.getElementById(`h_desc_${i}`).value;
+            });
+            await saveAllData(appData);
+            toast('Honorary cards saved!');
+        };
+
+        window.saveHomeTriviaTeaser = async function() {
+            appData.pages.home.triviaTeaser.question = document.getElementById('homeTriviaQuestion').value;
+            appData.pages.home.triviaTeaser.answer = document.getElementById('homeTriviaAnswer').value;
+            await saveAllData(appData);
+            toast('Trivia teaser saved!');
+        };
+
+        // ============================================================
+        // ABOUT PAGE EDITOR
+        // ============================================================
+        function renderAboutEditor() {
+            const about = appData.pages.about;
+            return `
+                <div class="card">
+                    <div class="card-title">Hero Section</div>
+                    <div class="form-group">
+                        <label>Hero Title</label>
+                        <input id="aboutHeroTitle" value="${escapeHtml(about.heroTitle)}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Hero Description</label>
+                        <textarea id="aboutHeroDesc" rows="3">${escapeHtml(about.heroDesc)}</textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.saveAboutHero()">Save Hero</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">Story Paragraphs</div>
+                    <div class="form-group">
+                        <label>Paragraphs (one per line)</label>
+                        <textarea id="aboutStory" rows="5">${about.storyParagraphs.join('\n')}</textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.saveAboutStory()">Save Story</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">Mission Cards</div>
+                    <div id="aboutMissionList">
+                        ${about.missionCards.map((card, i) => `
+                            <div style="display:grid;grid-template-columns:1fr 2fr 3fr;gap:8px;margin-bottom:8px;align-items:center;background:rgba(255,255,255,0.02);padding:8px 12px;border-radius:6px;">
+                                <input value="${escapeHtml(card.icon)}" placeholder="Icon" id="m_icon_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                                <input value="${escapeHtml(card.title)}" placeholder="Title" id="m_title_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                                <input value="${escapeHtml(card.desc)}" placeholder="Description" id="m_desc_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm" onclick="window.addMissionCard()">➕ Add Card</button>
+                        <button class="btn btn-primary" onclick="window.saveAboutMission()">Save Mission Cards</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Membership Items</div>
+                    <div id="aboutMembershipList">
+                        ${about.membershipItems.map((item, i) => `
+                            <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);padding:8px 12px;border-radius:6px;">
+                                <input value="${escapeHtml(item.title)}" placeholder="Title" id="mem_title_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                                <input value="${escapeHtml(item.desc)}" placeholder="Description" id="mem_desc_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm" onclick="window.addMembershipItem()">➕ Add Item</button>
+                        <button class="btn btn-primary" onclick="window.saveAboutMembership()">Save Membership</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Leadership Structure</div>
+                    <div id="aboutLeadershipList">
+                        ${about.leadershipItems.map((item, i) => `
+                            <div style="display:grid;grid-template-columns:0.5fr 1.5fr 3fr;gap:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);padding:8px 12px;border-radius:6px;">
+                                <input value="${escapeHtml(item.icon)}" placeholder="Icon" id="l_icon_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                                <input value="${escapeHtml(item.title)}" placeholder="Title" id="l_title_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                                <input value="${escapeHtml(item.desc)}" placeholder="Description" id="l_desc_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm" onclick="window.addLeadershipItem()">➕ Add Item</button>
+                        <button class="btn btn-primary" onclick="window.saveAboutLeadership()">Save Leadership</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Call to Action</div>
+                    <div class="form-group">
+                        <label>CTA Title</label>
+                        <input id="aboutCtaTitle" value="${escapeHtml(about.ctaTitle)}" />
+                    </div>
+                    <div class="form-group">
+                        <label>CTA Description</label>
+                        <textarea id="aboutCtaDesc" rows="2">${escapeHtml(about.ctaDesc)}</textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.saveAboutCta()">Save CTA</button>
+                </div>
+            `;
+        }
+
+        window.saveAboutHero = async function() {
+            const about = appData.pages.about;
+            about.heroTitle = document.getElementById('aboutHeroTitle').value;
+            about.heroDesc = document.getElementById('aboutHeroDesc').value;
+            await saveAllData(appData);
+            toast('About hero saved!');
+        };
+        window.saveAboutStory = async function() {
+            appData.pages.about.storyParagraphs = document.getElementById('aboutStory').value.split('\n').filter(s => s.trim());
+            await saveAllData(appData);
+            toast('Story saved!');
+        };
+        window.addMissionCard = function() {
+            appData.pages.about.missionCards.push({ icon: '🎯', title: 'New Mission', desc: 'Description here' });
+            renderPage('about');
+            toast('Mission card added!');
+        };
+        window.saveAboutMission = async function() {
+            const cards = appData.pages.about.missionCards;
+            cards.forEach((card, i) => {
+                card.icon = document.getElementById(`m_icon_${i}`).value;
+                card.title = document.getElementById(`m_title_${i}`).value;
+                card.desc = document.getElementById(`m_desc_${i}`).value;
+            });
+            await saveAllData(appData);
+            toast('Mission cards saved!');
+        };
+        window.addMembershipItem = function() {
+            appData.pages.about.membershipItems.push({ title: 'New Membership', desc: 'Description here' });
+            renderPage('about');
+            toast('Membership item added!');
+        };
+        window.saveAboutMembership = async function() {
+            const items = appData.pages.about.membershipItems;
+            items.forEach((item, i) => {
+                item.title = document.getElementById(`mem_title_${i}`).value;
+                item.desc = document.getElementById(`mem_desc_${i}`).value;
+            });
+            await saveAllData(appData);
+            toast('Membership saved!');
+        };
+        window.addLeadershipItem = function() {
+            appData.pages.about.leadershipItems.push({ icon: '🏛️', title: 'New Leadership', desc: 'Description here' });
+            renderPage('about');
+            toast('Leadership item added!');
+        };
+        window.saveAboutLeadership = async function() {
+            const items = appData.pages.about.leadershipItems;
+            items.forEach((item, i) => {
+                item.icon = document.getElementById(`l_icon_${i}`).value;
+                item.title = document.getElementById(`l_title_${i}`).value;
+                item.desc = document.getElementById(`l_desc_${i}`).value;
+            });
+            await saveAllData(appData);
+            toast('Leadership saved!');
+        };
+        window.saveAboutCta = async function() {
+            const about = appData.pages.about;
+            about.ctaTitle = document.getElementById('aboutCtaTitle').value;
+            about.ctaDesc = document.getElementById('aboutCtaDesc').value;
+            await saveAllData(appData);
+            toast('CTA saved!');
+        };
+
+        // ============================================================
+        // HISTORY PAGE EDITOR
+        // ============================================================
+        function renderHistoryEditor() {
+            const history = appData.pages.history;
+            return `
+                <div class="card">
+                    <div class="card-title">Hero Section</div>
+                    <div class="form-group">
+                        <label>Hero Title</label>
+                        <input id="historyHeroTitle" value="${escapeHtml(history.heroTitle)}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Hero Description</label>
+                        <textarea id="historyHeroDesc" rows="2">${escapeHtml(history.heroDesc)}</textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.saveHistoryHero()">Save Hero</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">Executive Management</div>
+                    <p style="color:var(--color-text-muted);font-size:0.9rem;margin-bottom:12px;">
+                        Manage executives in the <strong>Executives</strong> section from the sidebar.
+                    </p>
+                    <button class="btn btn-primary" onclick="window.navigateTo('executives')">Go to Executives →</button>
+                </div>
+            `;
+        }
+
+        window.saveHistoryHero = async function() {
+            const history = appData.pages.history;
+            history.heroTitle = document.getElementById('historyHeroTitle').value;
+            history.heroDesc = document.getElementById('historyHeroDesc').value;
+            await saveAllData(appData);
+            toast('History hero saved!');
+        };
+
+        // ============================================================
+        // EVENTS PAGE EDITOR
+        // ============================================================
+        function renderEventsEditor() {
+            const events = appData.pages.events;
+            const upcomingEvents = events.upcomingEvents || [];
+
+            return `
+                <div class="card">
+                    <div class="card-title">Hero Section</div>
+                    <div class="form-group">
+                        <label>Hero Title</label>
+                        <input id="eventsHeroTitle" value="${escapeHtml(events.heroTitle)}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Hero Description</label>
+                        <textarea id="eventsHeroDesc" rows="2">${escapeHtml(events.heroDesc)}</textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.saveEventsHero()">Save Hero</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Upcoming Events <span class="badge">${upcomingEvents.length}</span></div>
+                    <button class="btn btn-primary" onclick="window.addUpcomingEvent()">➕ Add New Upcoming Event</button>
+                    <div style="margin-top:12px;">
+                        ${upcomingEvents.length === 0 ? '<div class="empty-state">No upcoming events scheduled.</div>' : `
+                            <div class="item-list">
+                                ${upcomingEvents.map((event, index) => `
+                                    <div class="item-row">
+                                        <div class="item-info">
+                                            <div class="title">${escapeHtml(event.title) || 'Untitled Event'}</div>
+                                            <div class="meta">${escapeHtml(event.subtitle) || ''} ${event.flyerImage ? '🖼️' : ''}</div>
+                                        </div>
+                                        <div class="item-actions">
+                                            <button class="btn btn-primary btn-sm" onclick="window.editUpcomingEvent(${index})">✏️ Edit</button>
+                                            <button class="btn btn-danger btn-sm" onclick="window.deleteUpcomingEvent(${index})">🗑️</button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+
+                    <div id="upcomingEventForm" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.04);">
+                        <h4 id="formTitle">Add New Upcoming Event</h4>
+                        <input type="hidden" id="editEventIndex" value="-1" />
+                        <div class="form-group">
+                            <label>Event Title *</label>
+                            <input id="formTitleInput" placeholder="e.g. KHAKI TO LEGACY" />
+                        </div>
+                        <div class="form-group">
+                            <label>Subtitle</label>
+                            <input id="formSubtitleInput" placeholder="e.g. The 10th Reunion" />
+                        </div>
+                        <div class="form-group">
+                            <label>Label (e.g. Upcoming)</label>
+                            <input id="formLabelInput" placeholder="Upcoming" />
+                        </div>
+                        <div class="form-group">
+                            <label>Section Title</label>
+                            <input id="formSectionTitleInput" placeholder="e.g. 10th Reunion — Khaki to Legacy" />
+                        </div>
+                        <div class="form-group">
+                            <label>Section Description</label>
+                            <input id="formSectionDescInput" placeholder="Brief description of the event" />
+                        </div>
+                        <div class="form-group">
+                            <label>Features (comma separated)</label>
+                            <input id="formFeaturesInput" placeholder="Drum Battle, Soccer Match, Games" />
+                        </div>
+                        <div class="form-group">
+                            <label>Details (one per line, format: Label | Venue | Location | Time)</label>
+                            <textarea id="formDetailsInput" rows="4" placeholder="Day 1 – 2nd October 2026 | Methodist Church Sport field | Isale Aro, Osogbo | 2PM – 5PM"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>CTA Button Text</label>
+                            <input id="formCtaInput" placeholder="Let us know you're coming →" />
+                        </div>
+                        <div class="form-group">
+                            <label>Event Flyer / Image</label>
+                            <div class="flyer-upload-area">
+                                <label class="upload-label" for="formFlyerInput">📸 Choose Image (max 5MB)</label>
+                                <input type="file" id="formFlyerInput" accept="image/*" onchange="window.handleFormFlyerUpload(event)" />
+                                <div class="file-name" id="formFlyerFileName">No file selected</div>
+                                <div class="flyer-preview" id="formFlyerPreview">
+                                    <img id="formFlyerPreviewImage" src="#" alt="Event Flyer" />
+                                </div>
+                                <button class="remove-flyer-btn" id="formRemoveFlyerBtn" style="display:none;" onclick="window.removeFormFlyer()">🗑️ Remove Flyer</button>
+                            </div>
+                            <div class="helper">Upload a flyer image (JPG, PNG, GIF). Will be displayed on the events page.</div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="window.saveUpcomingEventForm()">💾 Save Event</button>
+                            <button class="btn btn-outline" onclick="window.cancelUpcomingEventForm()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Past Events</div>
+                    <div id="pastEventsList">
+                        ${events.pastEvents.map((ev, i) => `
+                            <div style="display:grid;grid-template-columns:1fr 2fr 2fr;gap:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);padding:8px 12px;border-radius:6px;align-items:center;">
+                                <input value="${escapeHtml(ev.year)}" placeholder="Year" id="pe_year_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                                <input value="${escapeHtml(ev.title)}" placeholder="Title" id="pe_title_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                                <input value="${escapeHtml(ev.desc)}" placeholder="Description" id="pe_desc_${i}" style="background:transparent;border:none;color:var(--color-white);" />
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary btn-sm" onclick="window.addPastEvent()">➕ Add Event</button>
+                        <button class="btn btn-primary" onclick="window.savePastEvents()">Save Past Events</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.addUpcomingEvent = function() {
+            editingEventIndex = -1;
+            document.getElementById('formTitle').textContent = 'Add New Upcoming Event';
+            document.getElementById('editEventIndex').value = -1;
+            clearEventForm();
+            document.getElementById('upcomingEventForm').style.display = 'block';
+            document.getElementById('upcomingEventForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        window.editUpcomingEvent = function(index) {
+            editingEventIndex = index;
+            const event = appData.pages.events.upcomingEvents[index];
+            document.getElementById('formTitle').textContent = 'Edit Upcoming Event';
+            document.getElementById('editEventIndex').value = index;
+            document.getElementById('formTitleInput').value = event.title || '';
+            document.getElementById('formSubtitleInput').value = event.subtitle || '';
+            document.getElementById('formLabelInput').value = event.label || '';
+            document.getElementById('formSectionTitleInput').value = event.sectionTitle || '';
+            document.getElementById('formSectionDescInput').value = event.sectionDesc || '';
+            document.getElementById('formFeaturesInput').value = (event.features || []).join(', ');
+            document.getElementById('formDetailsInput').value = (event.details || []).map(d =>
+                `${d.label || ''} | ${d.venue || ''} | ${d.location || ''} | ${d.time || ''}`
+            ).join('\n');
+            document.getElementById('formCtaInput').value = event.ctaText || '';
+
+            if (event.flyerImage) {
+                const preview = document.getElementById('formFlyerPreview');
+                const img = document.getElementById('formFlyerPreviewImage');
+                img.src = event.flyerImage;
+                preview.classList.add('show');
+                document.getElementById('formFlyerFileName').textContent = '✅ Image uploaded';
+                document.getElementById('formRemoveFlyerBtn').style.display = 'inline-block';
+            } else {
+                document.getElementById('formFlyerPreview').classList.remove('show');
+                document.getElementById('formFlyerFileName').textContent = 'No file selected';
+                document.getElementById('formRemoveFlyerBtn').style.display = 'none';
+            }
+
+            document.getElementById('upcomingEventForm').style.display = 'block';
+            document.getElementById('upcomingEventForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        function clearEventForm() {
+            document.getElementById('formTitleInput').value = '';
+            document.getElementById('formSubtitleInput').value = '';
+            document.getElementById('formLabelInput').value = '';
+            document.getElementById('formSectionTitleInput').value = '';
+            document.getElementById('formSectionDescInput').value = '';
+            document.getElementById('formFeaturesInput').value = '';
+            document.getElementById('formDetailsInput').value = '';
+            document.getElementById('formCtaInput').value = '';
+            document.getElementById('formFlyerPreview').classList.remove('show');
+            document.getElementById('formFlyerFileName').textContent = 'No file selected';
+            document.getElementById('formFlyerInput').value = '';
+            document.getElementById('formRemoveFlyerBtn').style.display = 'none';
+            document.getElementById('editEventIndex').value = -1;
+            delete document.getElementById('editEventIndex').dataset.flyer;
+        }
+
+        window.cancelUpcomingEventForm = function() {
+            document.getElementById('upcomingEventForm').style.display = 'none';
+            clearEventForm();
+        };
+
+        window.saveUpcomingEventForm = async function() {
+            const index = parseInt(document.getElementById('editEventIndex').value);
+            const title = document.getElementById('formTitleInput').value.trim();
+            if (!title) {
+                toast('Please enter an event title.', true);
+                return;
+            }
+
+            const eventData = {
+                title: title,
+                subtitle: document.getElementById('formSubtitleInput').value.trim(),
+                label: document.getElementById('formLabelInput').value.trim(),
+                sectionTitle: document.getElementById('formSectionTitleInput').value.trim(),
+                sectionDesc: document.getElementById('formSectionDescInput').value.trim(),
+                features: document.getElementById('formFeaturesInput').value.split(',').map(s => s.trim()).filter(s => s),
+                details: document.getElementById('formDetailsInput').value.split('\n').filter(line => line.trim()).map(line => {
+                    const parts = line.split('|').map(s => s.trim());
+                    return { label: parts[0] || '', venue: parts[1] || '', location: parts[2] || '', time: parts[3] || '' };
+                }),
+                ctaText: document.getElementById('formCtaInput').value.trim() || 'Learn More →',
+                flyerImage: document.getElementById('editEventIndex').dataset.flyer || null
+            };
+
+            if (index === -1) {
+                appData.pages.events.upcomingEvents.push(eventData);
+            } else {
+                appData.pages.events.upcomingEvents[index] = eventData;
+            }
+
+            await saveAllData(appData);
+            cancelUpcomingEventForm();
+            renderPage('events');
+            toast('Upcoming event saved!');
+        };
+
+        window.deleteUpcomingEvent = async function(index) {
+            if (!confirm('Delete this upcoming event?')) return;
+            appData.pages.events.upcomingEvents.splice(index, 1);
+            await saveAllData(appData);
+            renderPage('events');
+            toast('Event deleted!');
+        };
+
+        window.handleFormFlyerUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                toast('File is too large. Please choose an image under 5MB.', true);
+                event.target.value = '';
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                toast('Please select an image file.', true);
+                event.target.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                document.getElementById('editEventIndex').dataset.flyer = dataUrl;
+                document.getElementById('formFlyerFileName').textContent = '✅ ' + file.name;
+                const preview = document.getElementById('formFlyerPreview');
+                const img = document.getElementById('formFlyerPreviewImage');
+                img.src = dataUrl;
+                preview.classList.add('show');
+                document.getElementById('formRemoveFlyerBtn').style.display = 'inline-block';
+                toast('Flyer uploaded!');
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.removeFormFlyer = function() {
+            document.getElementById('formFlyerFileName').textContent = 'No file selected';
+            document.getElementById('formFlyerPreview').classList.remove('show');
+            document.getElementById('formFlyerPreviewImage').src = '';
+            document.getElementById('formFlyerInput').value = '';
+            document.getElementById('formRemoveFlyerBtn').style.display = 'none';
+            delete document.getElementById('editEventIndex').dataset.flyer;
+            toast('Flyer removed.');
+        };
+
+        window.saveEventsHero = async function() {
+            const events = appData.pages.events;
+            events.heroTitle = document.getElementById('eventsHeroTitle').value;
+            events.heroDesc = document.getElementById('eventsHeroDesc').value;
+            await saveAllData(appData);
+            toast('Events hero saved!');
+        };
+
+        window.addPastEvent = function() {
+            appData.pages.events.pastEvents.push({ year: '2026', title: 'New Reunion', desc: 'Description here' });
+            renderPage('events');
+            toast('Past event added!');
+        };
+
+        window.savePastEvents = async function() {
+            const events = appData.pages.events.pastEvents;
+            events.forEach((ev, i) => {
+                ev.year = document.getElementById(`pe_year_${i}`).value;
+                ev.title = document.getElementById(`pe_title_${i}`).value;
+                ev.desc = document.getElementById(`pe_desc_${i}`).value;
+            });
+            await saveAllData(appData);
+            toast('Past events saved!');
+        };
+
+        // ============================================================
+        // TRIVIA EDITOR
+        // ============================================================
+        function renderTriviaEditor() {
+            const trivia = appData.trivia;
+            return `
+                <div class="card">
+                    <div class="card-title">Add New Trivia</div>
+                    <div class="form-group">
+                        <label>Question</label>
+                        <input id="newTriviaQuestion" placeholder="Enter the question..." />
+                    </div>
+                    <div class="form-group">
+                        <label>Answer</label>
+                        <input id="newTriviaAnswer" placeholder="Enter the answer..." />
+                    </div>
+                    <button class="btn btn-primary" onclick="window.addTrivia()">➕ Add Trivia</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">Bulk Import</div>
+                    <div class="bulk-import-area">
+                        <div class="form-group">
+                            <label>Paste Q&A pairs (one per line, format: Question | Answer)</label>
+                            <textarea id="bulkTriviaInput" rows="6" placeholder="Question 1 | Answer 1&#10;Question 2 | Answer 2"></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="window.bulkImportTrivia()">📥 Bulk Import</button>
+                        <div class="hint">Separate question and answer with a pipe (|). Each line is one trivia entry.</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">All Trivia Questions <span class="badge">${trivia.length}</span></div>
+                    ${trivia.length === 0 ? '<div class="empty-state">No trivia questions yet. Add one above!</div>' : `
+                        <div class="item-list">
+                            ${trivia.map((item, i) => `
+                                <div class="item-row">
+                                    <div class="item-info">
+                                        <div class="title">${escapeHtml(item.question)}</div>
+                                        <div class="meta">Answer: ${escapeHtml(item.answer)}</div>
+                                    </div>
+                                    <div class="item-actions">
+                                        <button class="btn btn-danger btn-sm" onclick="window.deleteTrivia(${item.id})">🗑️</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        window.addTrivia = async function() {
+            const q = document.getElementById('newTriviaQuestion').value.trim();
+            const a = document.getElementById('newTriviaAnswer').value.trim();
+            if (!q || !a) {
+                toast('Please enter both question and answer.', true);
+                return;
+            }
+            const newItem = await addTriviaItem(q, a);
+            if (newItem) {
+                appData.trivia.push(newItem);
+                document.getElementById('newTriviaQuestion').value = '';
+                document.getElementById('newTriviaAnswer').value = '';
+                renderPage('trivia');
+                toast('Trivia added successfully!');
+            } else {
+                toast('Error adding trivia.', true);
+            }
+        };
+
+        window.bulkImportTrivia = async function() {
+            const text = document.getElementById('bulkTriviaInput').value;
+            const lines = text.split('\n').filter(line => line.trim());
+            let count = 0;
+            for (const line of lines) {
+                const parts = line.split('|').map(s => s.trim());
+                if (parts.length === 2 && parts[0] && parts[1]) {
+                    const newItem = await addTriviaItem(parts[0], parts[1]);
+                    if (newItem) {
+                        appData.trivia.push(newItem);
+                        count++;
+                    }
+                }
+            }
+            if (count === 0) {
+                toast('No valid entries found. Use format: Question | Answer', true);
+                return;
+            }
+            document.getElementById('bulkTriviaInput').value = '';
+            renderPage('trivia');
+            toast(`${count} trivia questions imported!`);
+        };
+
+        window.deleteTrivia = async function(id) {
+            if (!confirm('Delete this trivia question?')) return;
+            const success = await deleteTriviaItem(id);
+            if (success) {
+                appData.trivia = appData.trivia.filter(item => item.id !== id);
+                renderPage('trivia');
+                toast('Trivia deleted!');
+            } else {
+                toast('Error deleting trivia.', true);
+            }
+        };
+
+        // ============================================================
+        // EXECUTIVES EDITOR
+        // ============================================================
+        const EXECUTIVE_ROLES = {
+            president: { label: 'President', icon: '✅' },
+            major: { label: 'Major', icon: '🥁' },
+            provost: { label: 'Provost', icon: '🧑🏾‍✈️' },
+            pro: { label: 'P.R.O.', icon: '📢' },
+            dos: { label: 'D.O.S.', icon: '📸' },
+            gs: { label: 'General Secretary', icon: '✍🏽' },
+            ags: { label: 'A.G.S.', icon: '📝' },
+            brass: { label: 'Chief Brass', icon: '🎺' },
+            bass: { label: 'Chief Bass', icon: '💣' },
+            tenor: { label: 'Chief Tenor', icon: '💯' }
+        };
+
+        function renderExecutivesEditor() {
+            const roles = Object.keys(EXECUTIVE_ROLES);
+            return `
+                <div class="card">
+                    <div class="card-title">Executive Roles</div>
+                    <div class="executive-role-tabs">
+                        ${roles.map(role => `
+                            <button class="role-tab ${role === activeExecRole ? 'active' : ''}" onclick="window.switchExecRole('${role}')">
+                                ${EXECUTIVE_ROLES[role].icon} ${EXECUTIVE_ROLES[role].label}
+                            </button>
+                        `).join('')}
+                    </div>
+                    ${roles.map(role => `
+                        <div class="executive-role-content ${role === activeExecRole ? 'active' : ''}" id="execRole_${role}">
+                            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+                                <input id="execNewName_${role}" placeholder="Name" style="flex:1;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:var(--color-white);" />
+                                <input id="execNewBatch_${role}" placeholder="Batch (e.g. 15A)" style="width:100px;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:var(--color-white);" />
+                                <button class="btn btn-primary btn-sm" onclick="window.addExecutive('${role}')">➕ Add</button>
+                            </div>
+                            <div class="item-list">
+                                ${appData.executives[role] && appData.executives[role].length > 0 ? 
+                                    appData.executives[role].map((item, i) => `
+                                        <div class="item-row">
+                                            <div class="item-info">
+                                                <div class="title">${escapeHtml(item.name)}</div>
+                                                <div class="meta">${escapeHtml(item.batch)}</div>
+                                            </div>
+                                            <div class="item-actions">
+                                                <button class="btn btn-danger btn-sm" onclick="window.deleteExecutive('${role}', ${i})">🗑️</button>
+                                            </div>
+                                        </div>
+                                    `).join('') : 
+                                    '<div class="empty-state">No executives in this role.</div>'
+                                }
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        window.switchExecRole = function(role) {
+            activeExecRole = role;
+            renderPage('executives');
+        };
+
+        window.addExecutive = async function(role) {
+            const nameInput = document.getElementById(`execNewName_${role}`);
+            const batchInput = document.getElementById(`execNewBatch_${role}`);
+            const name = nameInput.value.trim();
+            const batch = batchInput.value.trim();
+            if (!name || !batch) {
+                toast('Please enter both name and batch.', true);
+                return;
+            }
+            if (!appData.executives[role]) appData.executives[role] = [];
+            appData.executives[role].push({ name, batch });
+            await updateExecutives(appData.executives);
+            nameInput.value = '';
+            batchInput.value = '';
+            renderPage('executives');
+            toast('Executive added!');
+        };
+
+        window.deleteExecutive = async function(role, index) {
+            if (!confirm('Delete this executive?')) return;
+            if (appData.executives[role]) {
+                appData.executives[role].splice(index, 1);
+                await updateExecutives(appData.executives);
+                renderPage('executives');
+                toast('Executive deleted!');
+            }
+        };
+
+        // ============================================================
+        // SETTINGS
+        // ============================================================
+        function renderSettings() {
+            return `
+                <div class="card">
+                    <div class="card-title">Change Admin Password</div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input id="settingsNewPass" type="password" placeholder="Enter new password" />
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input id="settingsConfirmPass" type="password" placeholder="Confirm new password" />
+                    </div>
+                    <button class="btn btn-primary" onclick="window.changePassword()">Change Password</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">Create New Admin User</div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input id="newAdminEmail" type="email" placeholder="newadmin@gtmb.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input id="newAdminPass" type="password" placeholder="Min 6 characters" />
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input id="newAdminConfirm" type="password" placeholder="Confirm password" />
+                    </div>
+                    <button class="btn btn-primary" onclick="window.createAdmin()">➕ Create Admin User</button>
+                    <div class="helper" style="margin-top:8px;">This will create a new user with admin privileges in Firestore.</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Data Management</div>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="window.exportData()">📤 Export Data (JSON)</button>
+                        <button class="btn btn-outline" onclick="window.importDataPrompt()">📥 Import Data (JSON)</button>
+                        <button class="btn btn-danger" onclick="window.resetAllData()">⚠️ Reset All Data</button>
+                    </div>
+                    <div style="margin-top:12px;padding:12px;background:rgba(255,0,0,0.04);border-radius:6px;border:1px solid rgba(255,0,0,0.08);">
+                        <p style="color:var(--color-text-muted);font-size:0.85rem;">
+                            <strong style="color:#ff6b6b;">⚠️ Warning:</strong> Resetting will delete all custom data and restore defaults. 
+                            Export your data first to keep a backup.
+                        </p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Import Data</div>
+                    <div class="form-group">
+                        <label>Paste JSON data below</label>
+                        <textarea id="importJsonArea" rows="6" placeholder='{"pages": {...}, "trivia": [...]}' style="font-family:monospace;font-size:0.85rem;"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.importJsonData()">📥 Import JSON</button>
+                </div>
+            `;
+        }
+
+        window.createAdmin = async function() {
+            const email = document.getElementById('newAdminEmail').value.trim();
+            const password = document.getElementById('newAdminPass').value;
+            const confirm = document.getElementById('newAdminConfirm').value;
+
+            if (!email || !password || !confirm) {
+                toast('Please fill all fields.', true);
+                return;
+            }
+            if (password.length < 6) {
+                toast('Password must be at least 6 characters.', true);
+                return;
+            }
+            if (password !== confirm) {
+                toast('Passwords do not match.', true);
+                return;
+            }
+
+            const result = await createAdminUser(email, password);
+            if (result.success) {
+                toast('Admin user created successfully!');
+                document.getElementById('newAdminEmail').value = '';
+                document.getElementById('newAdminPass').value = '';
+                document.getElementById('newAdminConfirm').value = '';
+            } else {
+                toast('Error: ' + result.error, true);
+            }
+        };
+
+        window.changePassword = async function() {
+            const newPass = document.getElementById('settingsNewPass').value;
+            const confirm = document.getElementById('settingsConfirmPass').value;
+            if (newPass.length < 4) {
+                toast('New password must be at least 4 characters.', true);
+                return;
+            }
+            if (newPass !== confirm) {
+                toast('Passwords do not match.', true);
+                return;
+            }
+            const success = await updatePassword(newPass);
+            if (success) {
+                document.getElementById('settingsNewPass').value = '';
+                document.getElementById('settingsConfirmPass').value = '';
+                toast('Password changed successfully!');
+            } else {
+                toast('Error changing password.', true);
+            }
+        };
+
+        window.importDataPrompt = function() {
+            document.getElementById('importJsonArea').focus();
+            toast('Paste your JSON data in the text area below and click Import.');
+        };
+
+        window.importJsonData = async function() {
+            const text = document.getElementById('importJsonArea').value.trim();
+            if (!text) {
+                toast('Please paste JSON data.', true);
+                return;
+            }
+            try {
+                const data = JSON.parse(text);
+                if (!data.pages || !data.trivia || !data.executives) {
+                    toast('Invalid data structure. Missing pages, trivia, or executives.', true);
+                    return;
+                }
+                const merged = { ...DEFAULT_DATA, ...data };
+                merged.pages = { ...DEFAULT_DATA.pages, ...data.pages };
+                merged.executives = { ...DEFAULT_DATA.executives, ...data.executives };
+                if (!Array.isArray(merged.trivia)) merged.trivia = [];
+                appData = merged;
+                await saveAllData(appData);
+                document.getElementById('importJsonArea').value = '';
+                toast('Data imported successfully!');
+                renderPage(currentPage);
+            } catch (e) {
+                toast('Invalid JSON: ' + e.message, true);
+            }
+        };
+
+        window.resetAllData = async function() {
+            if (!confirm('⚠️ Are you sure you want to reset ALL data to defaults? This cannot be undone!')) return;
+            if (!confirm('Really? All your custom data will be lost!')) return;
+            appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+            await saveAllData(appData);
+            toast('All data reset to defaults!');
+            renderPage(currentPage);
+        };
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        checkAuth();
+    </script>
+</body>
+</html>
