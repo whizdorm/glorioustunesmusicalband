@@ -7,36 +7,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
     <style>
         /* ===== RESET & BASE ===== */
-        *,
-        *::before,
-        *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --color-primary: #0f2a1a;
             --color-primary-light: #1a3d2a;
-            --color-primary-mid: #2a5a3a;
             --color-secondary: #2e7d32;
             --color-accent: #d4a84c;
             --color-accent-light: #f0d080;
-            --color-accent-pale: #f5e6c8;
-            --color-cream: #f4f7f0;
             --color-white: #ffffff;
             --color-text-light: #f0f5ee;
             --color-text-muted: #b8c4b0;
-            --shadow-accent: 0 4px 30px rgba(46, 125, 50, 0.30);
-            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.45);
+            --shadow-accent: 0 4px 30px rgba(46,125,50,0.30);
+            --shadow-card: 0 8px 32px rgba(0,0,0,0.45);
             --radius: 12px;
             --transition: 0.3s ease;
         }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
+        html { scroll-behavior: smooth; }
         body {
             font-family: "Inter", sans-serif;
             background-color: var(--color-primary);
@@ -44,895 +30,343 @@
             line-height: 1.6;
             overflow-x: hidden;
         }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        img { max-width: 100%; display: block; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--color-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--color-secondary); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
+        .heading-serif { font-family: "Playfair Display", serif; font-weight: 700; }
+        .accent-text { color: var(--color-accent); }
 
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        ul {
-            list-style: none;
-        }
-
-        img {
-            max-width: 100%;
-            display: block;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--color-primary);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--color-secondary);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--color-accent);
-        }
-
-        /* ===== TYPOGRAPHY ===== */
-        .heading-serif {
-            font-family: "Playfair Display", serif;
-            font-weight: 700;
-        }
-
-        .heading-serif-italic {
-            font-family: "Playfair Display", serif;
-            font-weight: 700;
-            font-style: italic;
-        }
-
-        .accent-text {
-            color: var(--color-accent);
-        }
-
-        .green-text {
-            color: var(--color-secondary);
-        }
-
-        /* ===== HEADER / NAV ===== */
+        /* HEADER */
         .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(15, 42, 26, 0.92);
-            backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(46, 125, 50, 0.2);
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: rgba(15,42,26,0.92); backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(46,125,50,0.2);
             transition: var(--transition);
         }
-
-        .header.scrolled {
-            background: rgba(15, 42, 26, 0.97);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-        }
-
+        .header.scrolled { background: rgba(15,42,26,0.97); box-shadow: 0 4px 30px rgba(0,0,0,0.5); }
         .header .container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 72px;
+            display: flex; align-items: center; justify-content: space-between; height: 72px;
         }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-
-        .logo img {
-            height: 42px;
-            width: auto;
-            display: block;
-            transition: var(--transition);
-        }
-
-        .logo img:hover {
-            opacity: 0.85;
-        }
-
-        .nav {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .logo img { height: 42px; width: auto; display: block; transition: var(--transition); }
+        .logo img:hover { opacity: 0.85; }
+        .nav { display: flex; align-items: center; gap: 8px; }
         .nav a {
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--color-text-muted);
-            transition: var(--transition);
-            position: relative;
+            padding: 8px 16px; border-radius: 6px; font-size: 0.875rem; font-weight: 500;
+            color: var(--color-text-muted); transition: var(--transition);
         }
-
-        .nav a:hover,
-        .nav a.active {
-            color: var(--color-white);
-            background: rgba(46, 125, 50, 0.15);
-        }
-
-        .nav a.active {
-            color: var(--color-accent);
-        }
-
-        .nav a.cta-nav {
-            background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
-            color: var(--color-white);
-            font-weight: 600;
-            padding: 8px 20px;
-            border-radius: 6px;
-        }
-
-        .nav a.cta-nav:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-accent);
-            background: linear-gradient(135deg, #388e3c, #1b5e20);
-        }
-
-        /* Hamburger */
+        .nav a:hover, .nav a.active { color: var(--color-white); background: rgba(46,125,50,0.15); }
+        .nav a.active { color: var(--color-accent); }
         .hamburger {
-            display: none;
-            flex-direction: column;
-            gap: 5px;
-            cursor: pointer;
-            padding: 4px;
-            background: none;
-            border: none;
+            display: none; flex-direction: column; gap: 5px; cursor: pointer;
+            padding: 4px; background: none; border: none;
         }
-
         .hamburger span {
-            display: block;
-            width: 26px;
-            height: 2.5px;
-            background: var(--color-white);
-            border-radius: 2px;
-            transition: var(--transition);
+            display: block; width: 26px; height: 2.5px;
+            background: var(--color-white); border-radius: 2px; transition: var(--transition);
         }
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
 
-        .hamburger.active span:nth-child(1) {
-            transform: rotate(45deg) translate(5px, 5px);
-        }
-        .hamburger.active span:nth-child(2) {
-            opacity: 0;
-        }
-        .hamburger.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(5px, -5px);
-        }
-
-        /* ===== HERO ===== */
+        /* HERO */
         .hero {
             padding: 140px 0 80px;
             background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-primary-light) 60%, #0f261a 100%);
-            position: relative;
-            overflow: hidden;
-            border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+            position: relative; overflow: hidden; border-bottom: 1px solid rgba(46,125,50,0.1);
         }
-
         .hero::before {
             content: "♪ ♫ ♬";
-            position: absolute;
-            top: -40px;
-            right: -20px;
-            font-size: 18rem;
-            color: rgba(46, 125, 50, 0.05);
-            font-family: serif;
-            line-height: 1;
+            position: absolute; top: -40px; right: -20px;
+            font-size: 18rem; color: rgba(46,125,50,0.05); font-family: serif;
             pointer-events: none;
         }
-
         .hero::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 120px;
-            background: linear-gradient(to top, var(--color-primary), transparent);
+            content: ""; position: absolute; bottom: 0; left: 0; right: 0;
+            height: 120px; background: linear-gradient(to top, var(--color-primary), transparent);
             pointer-events: none;
         }
-
         .hero .container {
-            position: relative;
-            z-index: 2;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            align-items: center;
+            position: relative; z-index: 2;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
         }
-
         .hero-content h1 {
-            font-size: 3.75rem;
-            line-height: 1.08;
-            margin-bottom: 16px;
+            font-size: 3.75rem; line-height: 1.08; margin-bottom: 16px;
         }
-
         .hero-content h1 .accent-text {
-            display: inline-block;
-            position: relative;
+            display: inline-block; position: relative;
         }
-
         .hero-content h1 .accent-text::after {
-            content: "";
-            position: absolute;
-            bottom: 4px;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--color-accent), transparent);
+            content: ""; position: absolute; bottom: 4px; left: 0; right: 0;
+            height: 4px; background: linear-gradient(90deg, var(--color-accent), transparent);
             border-radius: 2px;
         }
-
         .hero-tagline {
-            font-size: 1.15rem;
-            color: var(--color-text-muted);
-            max-width: 480px;
-            margin-bottom: 32px;
-            line-height: 1.7;
+            font-size: 1.15rem; color: var(--color-text-muted);
+            max-width: 480px; margin-bottom: 32px; line-height: 1.7;
         }
-
-        .hero-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-        }
-
+        .hero-buttons { display: flex; flex-wrap: wrap; gap: 14px; }
         .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 32px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: var(--transition);
-            border: none;
-            cursor: pointer;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 32px; border-radius: 8px; font-weight: 600;
+            font-size: 0.95rem; transition: var(--transition);
+            border: none; cursor: pointer;
         }
-
         .btn-primary {
             background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
-            color: var(--color-white);
-            box-shadow: 0 4px 20px rgba(46, 125, 50, 0.30);
+            color: var(--color-white); box-shadow: 0 4px 20px rgba(46,125,50,0.30);
         }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 35px rgba(46, 125, 50, 0.40);
-        }
-
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 35px rgba(46,125,50,0.40); }
         .btn-outline {
-            background: transparent;
-            color: var(--color-white);
-            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            background: transparent; color: var(--color-white);
+            border: 1.5px solid rgba(255,255,255,0.2);
         }
-
-        .btn-outline:hover {
-            border-color: var(--color-accent);
-            color: var(--color-accent);
-            background: rgba(212, 168, 76, 0.06);
-        }
-
-        .hero-visual {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
+        .btn-outline:hover { border-color: var(--color-accent); color: var(--color-accent); background: rgba(212,168,76,0.06); }
+        .hero-visual { display: flex; justify-content: center; align-items: center; }
         .hero-badge {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(46, 125, 50, 0.15);
-            border-radius: 20px;
-            padding: 40px 36px;
-            text-align: center;
-            backdrop-filter: blur(4px);
-            max-width: 400px;
-            width: 100%;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(46,125,50,0.15);
+            border-radius: 20px; padding: 40px 36px; text-align: center;
+            backdrop-filter: blur(4px); max-width: 400px; width: 100%;
         }
-
-        .hero-badge .icon-large {
-            font-size: 4rem;
-            margin-bottom: 8px;
-        }
-
+        .hero-badge .icon-large { font-size: 4rem; margin-bottom: 8px; }
         .hero-badge .badge-title {
-            font-family: "Playfair Display", serif;
-            font-size: 1.5rem;
-            color: var(--color-accent);
+            font-family: "Playfair Display", serif; font-size: 1.5rem; color: var(--color-accent);
             margin-bottom: 4px;
         }
-
-        .hero-badge .badge-sub {
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
+        .hero-badge .badge-sub { color: var(--color-text-muted); font-size: 0.9rem; }
         .hero-badge .badge-divider {
-            width: 60px;
-            height: 2px;
+            width: 60px; height: 2px;
             background: linear-gradient(90deg, var(--color-accent), transparent);
             margin: 16px auto;
         }
-
         .hero-badge .badge-list {
-            text-align: left;
-            font-size: 0.85rem;
-            color: var(--color-text-muted);
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+            text-align: left; font-size: 0.85rem; color: var(--color-text-muted);
+            display: flex; flex-direction: column; gap: 6px;
         }
+        .hero-badge .badge-list li { display: flex; align-items: center; gap: 8px; }
+        .hero-badge .badge-list li::before { content: "✦"; color: var(--color-accent); font-size: 0.7rem; }
 
-        .hero-badge .badge-list li {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .hero-badge .badge-list li::before {
-            content: "✦";
-            color: var(--color-accent);
-            font-size: 0.7rem;
-        }
-
-        /* ===== SECTION COMMON ===== */
-        .section {
-            padding: 80px 0;
-        }
-
+        /* SECTION */
+        .section { padding: 80px 0; }
         .section-header {
-            text-align: center;
-            margin-bottom: 56px;
+            text-align: center; margin-bottom: 56px;
         }
-
         .section-header .label {
-            display: inline-block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--color-secondary);
-            background: rgba(46, 125, 50, 0.12);
-            padding: 4px 16px;
-            border-radius: 20px;
-            margin-bottom: 12px;
+            display: inline-block; font-size: 0.75rem; font-weight: 600;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--color-secondary); background: rgba(46,125,50,0.12);
+            padding: 4px 16px; border-radius: 20px; margin-bottom: 12px;
         }
-
         .section-header h2 {
-            font-size: 2.5rem;
-            font-family: "Playfair Display", serif;
-            font-weight: 700;
-            color: var(--color-white);
+            font-size: 2.5rem; font-family: "Playfair Display", serif;
+            font-weight: 700; color: var(--color-white);
         }
-
         .section-header p {
-            color: var(--color-text-muted);
-            max-width: 560px;
-            margin: 12px auto 0;
-            font-size: 1.05rem;
+            color: var(--color-text-muted); max-width: 560px;
+            margin: 12px auto 0; font-size: 1.05rem;
         }
 
-        /* ===== FEATURED GRID ===== */
+        /* FEATURED GRID */
         .featured-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
             gap: 28px;
         }
-
         .feature-card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: var(--radius);
-            padding: 32px 28px;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius); padding: 32px 28px;
+            transition: var(--transition); position: relative; overflow: hidden;
         }
-
         .feature-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--color-secondary), transparent);
-            opacity: 0;
-            transition: var(--transition);
+            content: ""; position: absolute; top: 0; left: 0; right: 0;
+            height: 3px; background: linear-gradient(90deg, var(--color-secondary), transparent);
+            opacity: 0; transition: var(--transition);
         }
-
         .feature-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(46, 125, 50, 0.25);
-            background: rgba(255, 255, 255, 0.06);
-            box-shadow: var(--shadow-card);
+            transform: translateY(-6px); border-color: rgba(46,125,50,0.25);
+            background: rgba(255,255,255,0.06); box-shadow: var(--shadow-card);
         }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-
-        .feature-card .icon {
-            font-size: 2rem;
-            margin-bottom: 12px;
-        }
-
+        .feature-card:hover::before { opacity: 1; }
+        .feature-card .icon { font-size: 2rem; margin-bottom: 12px; }
         .feature-card h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--color-white);
+            font-size: 1.2rem; font-weight: 600; color: var(--color-white);
             margin-bottom: 6px;
         }
-
-        .feature-card p {
-            color: var(--color-text-muted);
-            font-size: 0.92rem;
-            line-height: 1.6;
-            margin-bottom: 12px;
-        }
-
+        .feature-card p { color: var(--color-text-muted); font-size: 0.92rem; line-height: 1.6; margin-bottom: 12px; }
         .feature-card .link-arrow {
-            color: var(--color-accent);
-            font-weight: 500;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            color: var(--color-accent); font-weight: 500; font-size: 0.9rem;
+            display: inline-flex; align-items: center; gap: 6px;
             transition: var(--transition);
         }
+        .feature-card .link-arrow:hover { gap: 12px; }
 
-        .feature-card .link-arrow:hover {
-            gap: 12px;
-        }
-
-        /* ===== CONSTITUTION PREVIEW ===== */
+        /* CONSTITUTION */
         .constitution-preview {
             background: linear-gradient(160deg, #0f261a, var(--color-primary-light));
-            border-top: 1px solid rgba(46, 125, 50, 0.08);
-            border-bottom: 1px solid rgba(46, 125, 50, 0.08);
+            border-top: 1px solid rgba(46,125,50,0.08);
+            border-bottom: 1px solid rgba(46,125,50,0.08);
         }
-
         .constitution-preview .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 50px;
-            align-items: start;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: start;
         }
-
-        .constitution-preview .section-header {
-            text-align: left;
-            margin-bottom: 0;
-        }
-
-        .constitution-preview .section-header h2 {
-            font-size: 2.2rem;
-        }
-
-        .constitution-preview .section-header p {
-            margin: 12px 0 0;
-        }
-
-        .constitution-highlights {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
+        .constitution-preview .section-header { text-align: left; margin-bottom: 0; }
+        .constitution-preview .section-header h2 { font-size: 2.2rem; }
+        .constitution-preview .section-header p { margin: 12px 0 0; }
+        .constitution-highlights { display: flex; flex-direction: column; gap: 16px; }
         .highlight-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-left: 3px solid var(--color-secondary);
-            padding: 16px 20px;
-            border-radius: 0 var(--radius) var(--radius) 0;
+            background: rgba(255,255,255,0.03); border-left: 3px solid var(--color-secondary);
+            padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0;
             transition: var(--transition);
         }
+        .highlight-item:hover { background: rgba(255,255,255,0.06); }
+        .highlight-item .hl-title { font-weight: 600; color: var(--color-white); font-size: 0.95rem; }
+        .highlight-item .hl-desc { color: var(--color-text-muted); font-size: 0.88rem; margin-top: 2px; }
 
-        .highlight-item:hover {
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .highlight-item .hl-title {
-            font-weight: 600;
-            color: var(--color-white);
-            font-size: 0.95rem;
-        }
-
-        .highlight-item .hl-title .accent-text {
-            font-weight: 400;
-        }
-
-        .highlight-item .hl-desc {
-            color: var(--color-text-muted);
-            font-size: 0.88rem;
-            margin-top: 2px;
-        }
-
-        /* ===== HONORARY MEMBERSHIP ===== */
-        .honorary-section {
-            background: var(--color-primary-light);
-        }
-
+        /* HONORARY */
+        .honorary-section { background: var(--color-primary-light); }
         .honorary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 24px;
-            margin-top: 12px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+            gap: 24px; margin-top: 12px;
         }
-
         .honorary-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: var(--radius);
-            padding: 28px 24px;
-            text-align: center;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius); padding: 28px 24px; text-align: center;
             transition: var(--transition);
         }
+        .honorary-card:hover { border-color: rgba(46,125,50,0.25); transform: translateY(-4px); }
+        .honorary-card .badge-icon { font-size: 2.4rem; margin-bottom: 8px; }
+        .honorary-card h4 { color: var(--color-white); font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; }
+        .honorary-card p { color: var(--color-text-muted); font-size: 0.85rem; line-height: 1.5; }
 
-        .honorary-card:hover {
-            border-color: rgba(46, 125, 50, 0.25);
-            transform: translateY(-4px);
-        }
-
-        .honorary-card .badge-icon {
-            font-size: 2.4rem;
-            margin-bottom: 8px;
-        }
-
-        .honorary-card h4 {
-            color: var(--color-white);
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .honorary-card p {
-            color: var(--color-text-muted);
-            font-size: 0.85rem;
-            line-height: 1.5;
-        }
-
-        /* ===== TRIVIA TEASER ===== */
-        .trivia-teaser {
-            background: var(--color-primary);
-        }
-
+        /* TRIVIA TEASER */
+        .trivia-teaser { background: var(--color-primary); }
         .trivia-teaser .trivia-block {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(46, 125, 50, 0.10);
-            border-radius: var(--radius);
-            padding: 32px 36px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 20px;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(46,125,50,0.10);
+            border-radius: var(--radius); padding: 32px 36px;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 20px;
         }
-
-        .trivia-teaser .trivia-block .left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
+        .trivia-teaser .trivia-block .left { display: flex; align-items: center; gap: 20px; }
         .trivia-teaser .trivia-block .q-mark {
-            font-size: 3rem;
-            color: var(--color-accent);
-            font-family: "Playfair Display", serif;
-            font-weight: 700;
-            line-height: 1;
+            font-size: 3rem; color: var(--color-accent);
+            font-family: "Playfair Display", serif; font-weight: 700;
         }
-
-        .trivia-teaser .trivia-block .trivia-text {
-            color: var(--color-text-light);
-            font-size: 1.05rem;
-        }
-
+        .trivia-teaser .trivia-block .trivia-text { color: var(--color-text-light); font-size: 1.05rem; }
         .trivia-teaser .trivia-block .trivia-text small {
-            display: block;
-            color: var(--color-text-muted);
-            font-size: 0.8rem;
-            margin-top: 2px;
+            display: block; color: var(--color-text-muted); font-size: 0.8rem; margin-top: 2px;
         }
 
-        /* ===== FOOTER ===== */
+        /* FOOTER */
         .footer {
-            background: var(--color-primary);
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            background: var(--color-primary); border-top: 1px solid rgba(255,255,255,0.04);
             padding: 48px 0 32px;
         }
-
         .footer .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 24px;
         }
-
-        .footer .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .footer .footer-brand img {
-            height: 32px;
-            width: auto;
-            display: block;
-        }
-
+        .footer .footer-brand { display: flex; align-items: center; gap: 12px; }
+        .footer .footer-brand img { height: 32px; width: auto; display: block; }
         .footer .footer-brand .brand-text {
-            font-family: "Playfair Display", serif;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--color-white);
+            font-family: "Playfair Display", serif; font-weight: 700;
+            font-size: 1.1rem; color: var(--color-white);
         }
-
-        .footer .footer-brand .brand-text span {
-            color: var(--color-accent);
-        }
-
-        .footer .footer-links {
-            display: flex;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-
-        .footer .footer-links a {
-            color: var(--color-text-muted);
-            font-size: 0.85rem;
-            transition: var(--transition);
-        }
-
-        .footer .footer-links a:hover {
-            color: var(--color-accent);
-        }
-
+        .footer .footer-brand .brand-text span { color: var(--color-accent); }
+        .footer .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+        .footer .footer-links a { color: var(--color-text-muted); font-size: 0.85rem; transition: var(--transition); }
+        .footer .footer-links a:hover { color: var(--color-accent); }
         .footer .footer-contact {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--color-text-muted);
-            font-size: 0.85rem;
-            transition: var(--transition);
+            display: flex; align-items: center; gap: 8px;
+            color: var(--color-text-muted); font-size: 0.85rem;
         }
-
-        .footer .footer-contact a {
-            color: var(--color-accent);
-            font-weight: 500;
-            transition: var(--transition);
-        }
-
-        .footer .footer-contact a:hover {
-            color: var(--color-accent-light);
-            text-decoration: underline;
-        }
-
-        .footer .footer-contact .email-icon {
-            font-size: 1rem;
-        }
-
+        .footer .footer-contact a { color: var(--color-accent); font-weight: 500; transition: var(--transition); }
+        .footer .footer-contact a:hover { color: var(--color-accent-light); text-decoration: underline; }
         .footer .footer-copy {
-            color: var(--color-text-muted);
-            font-size: 0.8rem;
-            width: 100%;
-            text-align: center;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--color-text-muted); font-size: 0.8rem; width: 100%;
+            text-align: center; margin-top: 16px; padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.04);
         }
 
-        /* ===== RESPONSIVE ===== */
+        /* RESPONSIVE */
         @media (max-width: 1024px) {
-            .hero .container {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-
-            .hero-content h1 {
-                font-size: 3rem;
-            }
-
-            .hero-tagline {
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .hero-buttons {
-                justify-content: center;
-            }
-
-            .hero-badge {
-                max-width: 100%;
-            }
-
-            .constitution-preview .container {
-                grid-template-columns: 1fr;
-                gap: 32px;
-            }
-
-            .constitution-preview .section-header {
-                text-align: center;
-            }
-
-            .constitution-preview .section-header p {
-                margin: 12px auto 0;
-            }
+            .hero .container { grid-template-columns: 1fr; text-align: center; }
+            .hero-content h1 { font-size: 3rem; }
+            .hero-tagline { margin-left: auto; margin-right: auto; }
+            .hero-buttons { justify-content: center; }
+            .hero-badge { max-width: 100%; }
+            .constitution-preview .container { grid-template-columns: 1fr; gap: 32px; }
+            .constitution-preview .section-header { text-align: center; }
+            .constitution-preview .section-header p { margin: 12px auto 0; }
         }
-
         @media (max-width: 768px) {
             .nav {
-                position: fixed;
-                top: 72px;
-                left: 0;
-                right: 0;
-                background: rgba(15, 42, 26, 0.98);
-                backdrop-filter: blur(14px);
-                flex-direction: column;
-                padding: 24px;
-                gap: 4px;
-                border-bottom: 1px solid rgba(46, 125, 50, 0.1);
-                transform: translateY(-120%);
-                transition: var(--transition);
-                opacity: 0;
-                pointer-events: none;
+                position: fixed; top: 72px; left: 0; right: 0;
+                background: rgba(15,42,26,0.98); backdrop-filter: blur(14px);
+                flex-direction: column; padding: 24px; gap: 4px;
+                border-bottom: 1px solid rgba(46,125,50,0.1);
+                transform: translateY(-120%); transition: var(--transition);
+                opacity: 0; pointer-events: none;
             }
-
-            .nav.open {
-                transform: translateY(0);
-                opacity: 1;
-                pointer-events: auto;
-            }
-
-            .nav a {
-                width: 100%;
-                text-align: center;
-                padding: 12px;
-            }
-
-            .hamburger {
-                display: flex;
-            }
-
-            .hero {
-                padding: 120px 0 60px;
-            }
-
-            .hero-content h1 {
-                font-size: 2.4rem;
-            }
-
-            .hero-tagline {
-                font-size: 1rem;
-            }
-
-            .section {
-                padding: 56px 0;
-            }
-
-            .section-header h2 {
-                font-size: 2rem;
-            }
-
-            .featured-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .honorary-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .trivia-teaser .trivia-block {
-                flex-direction: column;
-                text-align: center;
-                padding: 24px;
-            }
-
-            .trivia-teaser .trivia-block .left {
-                flex-direction: column;
-            }
-
-            .footer .container {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .logo img {
-                height: 34px;
-            }
+            .nav.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+            .nav a { width: 100%; text-align: center; padding: 12px; }
+            .hamburger { display: flex; }
+            .hero { padding: 120px 0 60px; }
+            .hero-content h1 { font-size: 2.4rem; }
+            .hero-tagline { font-size: 1rem; }
+            .section { padding: 56px 0; }
+            .section-header h2 { font-size: 2rem; }
+            .featured-grid { grid-template-columns: 1fr; }
+            .honorary-grid { grid-template-columns: 1fr 1fr; }
+            .trivia-teaser .trivia-block { flex-direction: column; text-align: center; padding: 24px; }
+            .trivia-teaser .trivia-block .left { flex-direction: column; }
+            .footer .container { flex-direction: column; text-align: center; }
+            .logo img { height: 34px; }
         }
-
         @media (max-width: 480px) {
-            .hero-content h1 {
-                font-size: 1.9rem;
-            }
-
-            .hero-badge {
-                padding: 24px 20px;
-            }
-
-            .honorary-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .btn {
-                padding: 10px 24px;
-                font-size: 0.85rem;
-            }
-
-            .hero-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .logo img {
-                height: 28px;
-            }
+            .hero-content h1 { font-size: 1.9rem; }
+            .hero-badge { padding: 24px 20px; }
+            .honorary-grid { grid-template-columns: 1fr; }
+            .btn { padding: 10px 24px; font-size: 0.85rem; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .logo img { height: 28px; }
         }
     </style>
 </head>
 <body>
-
-    <!-- ===== HEADER ===== -->
     <header class="header" id="header">
         <div class="container">
-            <a href="#" class="logo">
-                <img src="logo.png" alt="Glorious Tunes Musical Band Logo" />
-            </a>
-
+            <a href="index.html" class="logo"><img src="logo.png" alt="GTMB" /></a>
             <nav class="nav" id="nav">
-                <a href="#" class="active">Home</a>
+                <a href="index.html" class="active">Home</a>
                 <a href="about.html">About</a>
                 <a href="history.html">Know Your History</a>
                 <a href="events.html">Events</a>
                 <a href="trivia.html">Trivia</a>
             </nav>
-
-            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
+            <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
         </div>
     </header>
 
-    <!-- ===== HERO ===== -->
-    <section class="hero">
+    <section class="hero" id="hero">
         <div class="container">
             <div class="hero-content">
-                <h1>
-                    <span class="accent-text">Glorious</span><br />
-                    Tunes Musical<br />
-                    Band
-                </h1>
-                <p class="hero-tagline">
-                    Ex-Banders of Osun State Parade Band, united in harmony —
-                    promoting musical excellence, camaraderie, and a shared purpose.
-                </p>
+                <h1 id="heroTitle"><span class="accent-text">Glorious</span><br />Tunes Musical<br />Band</h1>
+                <p class="hero-tagline" id="heroTagline">Loading...</p>
                 <div class="hero-buttons">
                     <a href="about.html" class="btn btn-primary">Explore Our Story →</a>
                     <a href="events.html" class="btn btn-outline">Upcoming Events</a>
                 </div>
             </div>
-
             <div class="hero-visual">
                 <div class="hero-badge">
                     <div class="icon-large">🎵</div>
-                    <div class="badge-title">Since 2017</div>
+                    <div class="badge-title" id="badgeTitle">Since 2017</div>
                     <div class="badge-divider"></div>
-                    <ul class="badge-list">
+                    <ul class="badge-list" id="badgeList">
                         <li>Founded by Ex-NYSC Parade Band Members</li>
                         <li>Promoting Unity &amp; Musical Excellence</li>
                         <li>Annual Reunion &amp; AGM</li>
@@ -942,213 +376,118 @@
         </div>
     </section>
 
-    <!-- ===== FEATURED PAGES ===== -->
-    <section class="section">
+    <section class="section" id="featuredSection">
         <div class="container">
             <div class="section-header">
                 <span class="label">Explore GTMB</span>
                 <h2>Everything You Need to Know</h2>
                 <p>From our rich history to upcoming events — discover the world of Glorious Tunes.</p>
             </div>
-
-            <div class="featured-grid">
-                <div class="feature-card">
-                    <div class="icon">📖</div>
-                    <h3>About Us</h3>
-                    <p>Learn about our mission, values, and the passionate individuals behind GTMB.</p>
-                    <a href="about.html" class="link-arrow">Read more →</a>
-                </div>
-
-                <div class="feature-card">
-                    <div class="icon">🏛️</div>
-                    <h3>Know Your History</h3>
-                    <p>Explore past executives, their tenures, and the journey that shaped GTMB.</p>
-                    <a href="history.html" class="link-arrow">View executives →</a>
-                </div>
-
-                <div class="feature-card">
-                    <div class="icon">📅</div>
-                    <h3>Events</h3>
-                    <p>Stay updated on reunions, performances, and special GTMB gatherings.</p>
-                    <a href="events.html" class="link-arrow">See calendar →</a>
-                </div>
-
-                <div class="feature-card">
-                    <div class="icon">🧩</div>
-                    <h3>Trivia Archive</h3>
-                    <p>Test your knowledge with our collection of past trivia questions and answers.</p>
-                    <a href="trivia.html" class="link-arrow">Play trivia →</a>
-                </div>
-            </div>
+            <div class="featured-grid" id="featuredGrid"><!-- Dynamic --></div>
         </div>
     </section>
 
-    <!-- ===== CONSTITUTION PREVIEW ===== -->
-    <section class="constitution-preview section">
+    <section class="constitution-preview section" id="constitutionSection">
         <div class="container">
             <div class="section-header">
                 <span class="label">Our Constitution</span>
                 <h2>Built on <span class="accent-text">Unity</span> &amp; Excellence</h2>
-                <p>
-                    The GTMB Constitution defines our purpose, leadership, and the
-                    values that bind us together as one musical family.
-                </p>
+                <p>The GTMB Constitution defines our purpose, leadership, and the values that bind us together.</p>
             </div>
-
-            <div class="constitution-highlights">
-                <div class="highlight-item">
-                    <div class="hl-title">📜 <span class="accent-text">Preamble</span></div>
-                    <div class="hl-desc">
-                        We, the Ex-Banders of Osun State Parade Band, now forming the
-                        Glorious Tunes Musical Band, in order to promote unity, excellence,
-                        and teamwork in our musical endeavours…
-                    </div>
-                </div>
-
-                <div class="highlight-item">
-                    <div class="hl-title">🎯 <span class="accent-text">Article 1</span> — Name &amp; Objectives</div>
-                    <div class="hl-desc">
-                        Promote musical excellence, foster unity, enhance our image, and
-                        provide entertainment and morale-boosting services.
-                    </div>
-                </div>
-
-                <div class="highlight-item">
-                    <div class="hl-title">👥 <span class="accent-text">Article 2</span> — Membership</div>
-                    <div class="hl-desc">
-                        Eligibility: Ex-Banders from NYSC Parade Band, Osun, with maturity,
-                        musical talent, and shared interest in GTMB's objectives.
-                    </div>
-                </div>
-
-                <div class="highlight-item">
-                    <div class="hl-title">🏅 <span class="accent-text">Article 2.4</span> — Honorary Membership</div>
-                    <div class="hl-desc">
-                        Conferred upon individuals who have demonstrated exceptional support,
-                        commitment, or contribution to GTMB.
-                    </div>
-                </div>
-            </div>
+            <div class="constitution-highlights" id="constitutionHighlights"><!-- Dynamic --></div>
         </div>
     </section>
 
-    <!-- ===== HONORARY MEMBERSHIP DETAIL ===== -->
-    <section class="honorary-section section">
+    <section class="honorary-section section" id="honorarySection">
         <div class="container">
             <div class="section-header">
                 <span class="label">Honorary Membership</span>
                 <h2>Recognising <span class="accent-text">Exceptional</span> Support</h2>
-                <p>
-                    Article 2.4 of our Constitution formally recognises and appreciates
-                    individuals who have contributed significantly to GTMB.
-                </p>
+                <p>Article 2.4 of our Constitution formally recognises and appreciates individuals who have contributed significantly to GTMB.</p>
             </div>
-
-            <div class="honorary-grid">
-                <div class="honorary-card">
-                    <div class="badge-icon">⭐</div>
-                    <h4>Distinguished Supporter</h4>
-                    <p>Significant financial or material contributions to GTMB.</p>
-                </div>
-
-                <div class="honorary-card">
-                    <div class="badge-icon">🤝</div>
-                    <h4>Special Friend</h4>
-                    <p>Consistent moral support, advocacy, and encouragement.</p>
-                </div>
-
-                <div class="honorary-card">
-                    <div class="badge-icon">👑</div>
-                    <h4>Honorary Patron</h4>
-                    <p>Highest honour for individuals with exceptional influence or stature.</p>
-                </div>
-            </div>
-
+            <div class="honorary-grid" id="honoraryGrid"><!-- Dynamic --></div>
         </div>
     </section>
 
-    <!-- ===== TRIVIA TEASER ===== -->
-    <section class="trivia-teaser section">
+    <section class="trivia-teaser section" id="triviaTeaserSection">
         <div class="container">
             <div class="section-header">
                 <span class="label">Trivia Archive</span>
                 <h2>Test Your <span class="accent-text">Knowledge</span></h2>
                 <p>Dive into our collection of past trivia questions and answers.</p>
             </div>
-
-            <div class="trivia-block">
-                <div class="left">
-                    <div class="q-mark">?</div>
-                    <div class="trivia-text">
-                        <strong>Featured Question:</strong> “In what year was GTMB officially registered?”
-                        <small>Answer: 2024 — Find more in the Trivia Archive →</small>
-                    </div>
-                </div>
-                <a href="trivia.html" class="btn btn-primary">Explore Trivia</a>
-            </div>
+            <div class="trivia-block" id="triviaBlock"><!-- Dynamic --></div>
         </div>
     </section>
 
-    <!-- ===== FOOTER ===== -->
     <footer class="footer">
         <div class="container">
-            <div class="footer-brand">
-                <img src="logo.png" alt="Glorious Tunes Musical Band Logo" />
-                <div class="brand-text">GTMB <span>·</span> Glorious Tunes</div>
-            </div>
-
+            <div class="footer-brand"><img src="logo.png" alt="GTMB" /><div class="brand-text">GTMB <span>·</span> Glorious Tunes</div></div>
             <div class="footer-links">
-                <a href="#">Home</a>
-                <a href="about.html">About</a>
-                <a href="history.html">History</a>
-                <a href="events.html">Events</a>
-                <a href="trivia.html">Trivia</a>
+                <a href="index.html">Home</a><a href="about.html">About</a><a href="history.html">History</a><a href="events.html">Events</a><a href="trivia.html">Trivia</a>
             </div>
-
-            <div class="footer-contact">
-                <span class="email-icon">✉️</span>
-                <a href="mailto:glorioustunesmusicalband@gmail.com">glorioustunesmusicalband@gmail.com</a>
-            </div>
-
-            <div class="footer-copy">
-                &copy; 2026 Glorious Tunes Musical Band. All rights reserved.
-            </div>
+            <div class="footer-contact"><span>✉️</span><a href="mailto:glorioustunesmusicalband@gmail.com">glorioustunesmusicalband@gmail.com</a></div>
+            <div class="footer-copy">&copy; 2026 Glorious Tunes Musical Band. All rights reserved.</div>
         </div>
     </footer>
 
-    <!-- ===== SCRIPTS ===== -->
-    <script>
-        // ---- Hamburger toggle ----
+    <script type="module">
+        import { loadPage, escapeHtml } from './script.js';
+
+        // ---- Hamburger ----
         const hamburger = document.getElementById('hamburger');
         const nav = document.getElementById('nav');
-
         hamburger.addEventListener('click', () => {
             hamburger.classList.toggle('active');
             nav.classList.toggle('open');
         });
-
-        // Close nav on link click (mobile)
         document.querySelectorAll('.nav a').forEach(link => {
             link.addEventListener('click', () => {
                 hamburger.classList.remove('active');
                 nav.classList.remove('open');
             });
         });
-
-        // ---- Header scroll effect ----
         const header = document.getElementById('header');
-        let lastScroll = 0;
-
         window.addEventListener('scroll', () => {
-            const currentScroll = window.pageYOffset;
-            if (currentScroll > 30) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-            lastScroll = currentScroll;
+            header.classList.toggle('scrolled', window.pageYOffset > 30);
         });
-    </script>
 
+        // ---- Load Home ----
+        const home = await loadPage('home');
+        if (home) {
+            document.getElementById('heroTitle').innerHTML = home.heroTitle.replace(/Glorious/, '<span class="accent-text">Glorious</span>');
+            document.getElementById('heroTagline').textContent = home.heroTagline;
+            document.getElementById('badgeTitle').textContent = home.heroBadgeTitle;
+            document.getElementById('badgeList').innerHTML = home.heroBadgeItems.map(i => `<li>${escapeHtml(i)}</li>`).join('');
+            document.getElementById('featuredGrid').innerHTML = home.featureCards.map(c => `
+                <div class="feature-card">
+                    <div class="icon">${escapeHtml(c.icon)}</div>
+                    <h3>${escapeHtml(c.title)}</h3>
+                    <p>${escapeHtml(c.desc)}</p>
+                    <a href="${escapeHtml(c.link)}" class="link-arrow">Read more →</a>
+                </div>
+            `).join('');
+            document.getElementById('constitutionHighlights').innerHTML = home.constitutionHighlights.map(t => `
+                <div class="highlight-item"><div class="hl-desc">${escapeHtml(t)}</div></div>
+            `).join('');
+            document.getElementById('honoraryGrid').innerHTML = home.honoraryCards.map(c => `
+                <div class="honorary-card">
+                    <div class="badge-icon">${escapeHtml(c.icon)}</div>
+                    <h4>${escapeHtml(c.title)}</h4>
+                    <p>${escapeHtml(c.desc)}</p>
+                </div>
+            `).join('');
+            document.getElementById('triviaBlock').innerHTML = `
+                <div class="left">
+                    <div class="q-mark">?</div>
+                    <div class="trivia-text">
+                        <strong>${escapeHtml(home.triviaTeaser.question)}</strong>
+                        <small>${escapeHtml(home.triviaTeaser.answer)}</small>
+                    </div>
+                </div>
+                <a href="trivia.html" class="btn btn-primary">Explore Trivia</a>
+            `;
+        }
+    </script>
 </body>
 </html>
