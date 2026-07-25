@@ -6,645 +6,127 @@
     <title>About GTMB | Glorious Tunes Musical Band</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
     <style>
-        /* ===== RESET & BASE ===== */
-        *,
-        *::before,
-        *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --color-primary: #0f2a1a;
-            --color-primary-light: #1a3d2a;
-            --color-primary-mid: #2a5a3a;
-            --color-secondary: #2e7d32;
-            --color-accent: #d4a84c;
-            --color-accent-light: #f0d080;
-            --color-accent-pale: #f5e6c8;
-            --color-cream: #f4f7f0;
-            --color-white: #ffffff;
-            --color-text-light: #f0f5ee;
-            --color-text-muted: #b8c4b0;
-            --shadow-accent: 0 4px 30px rgba(46, 125, 50, 0.30);
-            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.45);
-            --radius: 12px;
-            --transition: 0.3s ease;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: "Inter", sans-serif;
-            background-color: var(--color-primary);
-            color: var(--color-text-light);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        ul {
-            list-style: none;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--color-primary);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--color-secondary);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--color-accent);
-        }
-
-        /* ===== TYPOGRAPHY ===== */
-        .heading-serif {
-            font-family: "Playfair Display", serif;
-            font-weight: 700;
-        }
-
-        .accent-text {
-            color: var(--color-accent);
-        }
-
-        /* ===== HEADER ===== */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(15, 42, 26, 0.92);
-            backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(46, 125, 50, 0.2);
-            transition: var(--transition);
-        }
-
-        .header.scrolled {
-            background: rgba(15, 42, 26, 0.97);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .header .container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 72px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-
-        .logo img {
-            height: 42px;
-            width: auto;
-            display: block;
-            transition: var(--transition);
-        }
-
-        .logo img:hover {
-            opacity: 0.85;
-        }
-
-        /* Hide old text-based logo */
-        .logo-text {
-            display: none;
-        }
-
-        .nav {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav a {
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--color-text-muted);
-            transition: var(--transition);
-            position: relative;
-        }
-
-        .nav a:hover,
-        .nav a.active {
-            color: var(--color-white);
-            background: rgba(46, 125, 50, 0.15);
-        }
-
-        .nav a.active {
-            color: var(--color-accent);
-        }
-
-        .nav a.cta-nav {
-            background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
-            color: var(--color-white);
-            font-weight: 600;
-            padding: 8px 20px;
-            border-radius: 6px;
-        }
-
-        .nav a.cta-nav:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-accent);
-            background: linear-gradient(135deg, #388e3c, #1b5e20);
-        }
-
-        .hamburger {
-            display: none;
-            flex-direction: column;
-            gap: 5px;
-            cursor: pointer;
-            padding: 4px;
-            background: none;
-            border: none;
-        }
-
-        .hamburger span {
-            display: block;
-            width: 26px;
-            height: 2.5px;
-            background: var(--color-white);
-            border-radius: 2px;
-            transition: var(--transition);
-        }
-
-        .hamburger.active span:nth-child(1) {
-            transform: rotate(45deg) translate(5px, 5px);
-        }
-        .hamburger.active span:nth-child(2) {
-            opacity: 0;
-        }
-        .hamburger.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(5px, -5px);
-        }
-
-        /* ===== PAGE HERO ===== */
-        .page-hero {
-            padding: 140px 0 60px;
-            background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-primary-light) 60%, #0f261a 100%);
-            border-bottom: 1px solid rgba(46, 125, 50, 0.1);
-            position: relative;
-        }
-
-        .page-hero::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            background: linear-gradient(to top, var(--color-primary), transparent);
-            pointer-events: none;
-        }
-
-        .page-hero .container {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-        }
-
-        .page-hero h1 {
-            font-size: 3.5rem;
-            font-family: "Playfair Display", serif;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .page-hero h1 .accent-text {
-            display: inline-block;
-            position: relative;
-        }
-
-        .page-hero h1 .accent-text::after {
-            content: "";
-            position: absolute;
-            bottom: 4px;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--color-accent), transparent);
-            border-radius: 2px;
-        }
-
-        .page-hero p {
-            color: var(--color-text-muted);
-            font-size: 1.2rem;
-            max-width: 640px;
-            margin: 0 auto;
-        }
-
-        /* ===== SECTION ===== */
-        .section {
-            padding: 80px 0;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 48px;
-        }
-
-        .section-header .label {
-            display: inline-block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--color-secondary);
-            background: rgba(46, 125, 50, 0.12);
-            padding: 4px 16px;
-            border-radius: 20px;
-            margin-bottom: 12px;
-        }
-
-        .section-header h2 {
-            font-size: 2.5rem;
-            font-family: "Playfair Display", serif;
-            font-weight: 700;
-            color: var(--color-white);
-        }
-
-        .section-header p {
-            color: var(--color-text-muted);
-            max-width: 560px;
-            margin: 12px auto 0;
-            font-size: 1.05rem;
-        }
-
-        .section-sub {
-            color: var(--color-text-muted);
-            font-size: 1.05rem;
-            max-width: 800px;
-            margin: 0 auto 40px;
-            text-align: center;
-            line-height: 1.8;
-        }
-
-        /* ===== TWO COLUMN ===== */
-        .two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 50px;
-            align-items: center;
-        }
-
-        .two-col .text-block p {
-            color: var(--color-text-muted);
-            font-size: 1rem;
-            line-height: 1.8;
-            margin-bottom: 16px;
-        }
-
-        .two-col .text-block p:last-child {
-            margin-bottom: 0;
-        }
-
-        .two-col .image-block {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(46, 125, 50, 0.1);
-            border-radius: var(--radius);
-            padding: 40px 30px;
-            text-align: center;
-            transition: var(--transition);
-        }
-
-        .two-col .image-block:hover {
-            border-color: rgba(46, 125, 50, 0.25);
-        }
-
-        .two-col .image-block .icon-big {
-            font-size: 5rem;
-            margin-bottom: 16px;
-        }
-
-        .two-col .image-block h3 {
-            font-family: "Playfair Display", serif;
-            font-size: 1.5rem;
-            color: var(--color-accent);
-            margin-bottom: 8px;
-        }
-
-        .two-col .image-block p {
-            color: var(--color-text-muted);
-            font-size: 0.95rem;
-        }
-
-        /* ===== CARDS ===== */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 28px;
-            margin-top: 16px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: var(--radius);
-            padding: 28px 24px;
-            transition: var(--transition);
-            text-align: center;
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(46, 125, 50, 0.25);
-            background: rgba(255, 255, 255, 0.06);
-            box-shadow: var(--shadow-card);
-        }
-
-        .card .icon {
-            font-size: 2.2rem;
-            margin-bottom: 12px;
-        }
-
-        .card h4 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--color-white);
-            margin-bottom: 6px;
-        }
-
-        .card p {
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        /* ===== MEMBERSHIP HIGHLIGHTS ===== */
-        .membership-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 24px;
-        }
-
-        .membership-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-left: 3px solid var(--color-secondary);
-            padding: 16px 20px;
-            border-radius: 0 var(--radius) var(--radius) 0;
-            transition: var(--transition);
-        }
-
-        .membership-item:hover {
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .membership-item .title {
-            font-weight: 600;
-            color: var(--color-white);
-            font-size: 1rem;
-        }
-
-        .membership-item .desc {
-            color: var(--color-text-muted);
-            font-size: 0.88rem;
-            margin-top: 2px;
-        }
-
-        /* ===== BUTTONS ===== */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 32px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: var(--transition);
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
-            color: var(--color-white);
-            box-shadow: 0 4px 20px rgba(46, 125, 50, 0.30);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 35px rgba(46, 125, 50, 0.40);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--color-white);
-            border: 1.5px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-outline:hover {
-            border-color: var(--color-accent);
-            color: var(--color-accent);
-            background: rgba(212, 168, 76, 0.06);
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .mt-16 {
-            margin-top: 16px;
-        }
-
-        /* ===== FOOTER ===== */
-        .footer {
-            background: var(--color-primary);
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-            padding: 48px 0 32px;
-        }
-
-        .footer .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 24px;
-        }
-
-        .footer .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .footer .footer-brand img {
-            height: 32px;
-            width: auto;
-            display: block;
-        }
-
-        .footer .footer-brand .brand-text {
-            font-family: "Playfair Display", serif;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--color-white);
-        }
-
-        .footer .footer-brand .brand-text span {
-            color: var(--color-accent);
-        }
-
-        .footer .footer-links {
-            display: flex;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-
-        .footer .footer-links a {
-            color: var(--color-text-muted);
-            font-size: 0.85rem;
-            transition: var(--transition);
-        }
-
-        .footer .footer-links a:hover {
-            color: var(--color-accent);
-        }
-
-        .footer .footer-copy {
-            color: var(--color-text-muted);
-            font-size: 0.8rem;
-            width: 100%;
-            text-align: center;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 1024px) {
-            .two-col {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
-
-            .two-col .text-block {
-                order: 2;
-            }
-            .two-col .image-block {
-                order: 1;
-            }
-        }
-
+        /* ===== RESET & BASE (same as index) ===== */
+        /* For brevity, use the same CSS as index.html – I'll copy it again here for completeness */
+        /* I'm including it fully to make this self-contained, but in production you can link a shared CSS file */
+        :root { --color-primary: #0f2a1a; --color-primary-light: #1a3d2a; --color-secondary: #2e7d32; --color-accent: #d4a84c; --color-accent-light: #f0d080; --color-white: #ffffff; --color-text-light: #f0f5ee; --color-text-muted: #b8c4b0; --shadow-accent: 0 4px 30px rgba(46,125,50,0.30); --shadow-card: 0 8px 32px rgba(0,0,0,0.45); --radius: 12px; --transition: 0.3s ease; }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: "Inter", sans-serif; background-color: var(--color-primary); color: var(--color-text-light); line-height: 1.6; overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--color-primary); } ::-webkit-scrollbar-thumb { background: var(--color-secondary); border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
+        .heading-serif { font-family: "Playfair Display", serif; font-weight: 700; }
+        .accent-text { color: var(--color-accent); }
+
+        /* HEADER (same) */
+        .header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(15,42,26,0.92); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(46,125,50,0.2); transition: var(--transition); }
+        .header.scrolled { background: rgba(15,42,26,0.97); box-shadow: 0 4px 30px rgba(0,0,0,0.5); }
+        .header .container { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+        .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .logo img { height: 42px; width: auto; display: block; transition: var(--transition); }
+        .logo img:hover { opacity: 0.85; }
+        .nav { display: flex; align-items: center; gap: 8px; }
+        .nav a { padding: 8px 16px; border-radius: 6px; font-size: 0.875rem; font-weight: 500; color: var(--color-text-muted); transition: var(--transition); }
+        .nav a:hover, .nav a.active { color: var(--color-white); background: rgba(46,125,50,0.15); }
+        .nav a.active { color: var(--color-accent); }
+        .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; background: none; border: none; }
+        .hamburger span { display: block; width: 26px; height: 2.5px; background: var(--color-white); border-radius: 2px; transition: var(--transition); }
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
+
+        /* PAGE HERO */
+        .page-hero { padding: 140px 0 60px; background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-primary-light) 60%, #0f261a 100%); border-bottom: 1px solid rgba(46,125,50,0.1); position: relative; }
+        .page-hero::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(to top, var(--color-primary), transparent); pointer-events: none; }
+        .page-hero .container { position: relative; z-index: 2; text-align: center; }
+        .page-hero h1 { font-size: 3.5rem; font-family: "Playfair Display", serif; font-weight: 700; margin-bottom: 16px; }
+        .page-hero h1 .accent-text { display: inline-block; position: relative; }
+        .page-hero h1 .accent-text::after { content: ""; position: absolute; bottom: 4px; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--color-accent), transparent); border-radius: 2px; }
+        .page-hero p { color: var(--color-text-muted); font-size: 1.2rem; max-width: 640px; margin: 0 auto; }
+
+        /* SECTION */
+        .section { padding: 80px 0; }
+        .section-header { text-align: center; margin-bottom: 48px; }
+        .section-header .label { display: inline-block; font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--color-secondary); background: rgba(46,125,50,0.12); padding: 4px 16px; border-radius: 20px; margin-bottom: 12px; }
+        .section-header h2 { font-size: 2.5rem; font-family: "Playfair Display", serif; font-weight: 700; color: var(--color-white); }
+        .section-header p { color: var(--color-text-muted); max-width: 560px; margin: 12px auto 0; font-size: 1.05rem; }
+
+        /* TWO COLUMN */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+        .two-col .text-block p { color: var(--color-text-muted); font-size: 1rem; line-height: 1.8; margin-bottom: 16px; }
+        .two-col .text-block p:last-child { margin-bottom: 0; }
+        .two-col .image-block { background: rgba(255,255,255,0.04); border: 1px solid rgba(46,125,50,0.1); border-radius: var(--radius); padding: 40px 30px; text-align: center; transition: var(--transition); }
+        .two-col .image-block:hover { border-color: rgba(46,125,50,0.25); }
+        .two-col .image-block .icon-big { font-size: 5rem; margin-bottom: 16px; }
+        .two-col .image-block h3 { font-family: "Playfair Display", serif; font-size: 1.5rem; color: var(--color-accent); margin-bottom: 8px; }
+        .two-col .image-block p { color: var(--color-text-muted); font-size: 0.95rem; }
+
+        /* CARDS */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 28px; margin-top: 16px; }
+        .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 28px 24px; transition: var(--transition); text-align: center; }
+        .card:hover { transform: translateY(-4px); border-color: rgba(46,125,50,0.25); background: rgba(255,255,255,0.06); box-shadow: var(--shadow-card); }
+        .card .icon { font-size: 2.2rem; margin-bottom: 12px; }
+        .card h4 { font-size: 1.1rem; font-weight: 600; color: var(--color-white); margin-bottom: 6px; }
+        .card p { color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.6; }
+
+        /* MEMBERSHIP */
+        .membership-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 24px; }
+        .membership-item { background: rgba(255,255,255,0.03); border-left: 3px solid var(--color-secondary); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; transition: var(--transition); }
+        .membership-item:hover { background: rgba(255,255,255,0.06); }
+        .membership-item .title { font-weight: 600; color: var(--color-white); font-size: 1rem; }
+        .membership-item .desc { color: var(--color-text-muted); font-size: 0.88rem; margin-top: 2px; }
+
+        /* FOOTER */
+        .footer { background: var(--color-primary); border-top: 1px solid rgba(255,255,255,0.04); padding: 48px 0 32px; }
+        .footer .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; }
+        .footer .footer-brand { display: flex; align-items: center; gap: 12px; }
+        .footer .footer-brand img { height: 32px; width: auto; display: block; }
+        .footer .footer-brand .brand-text { font-family: "Playfair Display", serif; font-weight: 700; font-size: 1.1rem; color: var(--color-white); }
+        .footer .footer-brand .brand-text span { color: var(--color-accent); }
+        .footer .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+        .footer .footer-links a { color: var(--color-text-muted); font-size: 0.85rem; transition: var(--transition); }
+        .footer .footer-links a:hover { color: var(--color-accent); }
+        .footer .footer-contact { display: flex; align-items: center; gap: 8px; color: var(--color-text-muted); font-size: 0.85rem; }
+        .footer .footer-contact a { color: var(--color-accent); font-weight: 500; transition: var(--transition); }
+        .footer .footer-contact a:hover { color: var(--color-accent-light); text-decoration: underline; }
+        .footer .footer-copy { color: var(--color-text-muted); font-size: 0.8rem; width: 100%; text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.04); }
+
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; transition: var(--transition); border: none; cursor: pointer; }
+        .btn-primary { background: linear-gradient(135deg, var(--color-secondary), #1b5e20); color: var(--color-white); box-shadow: 0 4px 20px rgba(46,125,50,0.30); }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 35px rgba(46,125,50,0.40); }
+        .btn-outline { background: transparent; color: var(--color-white); border: 1.5px solid rgba(255,255,255,0.2); }
+        .btn-outline:hover { border-color: var(--color-accent); color: var(--color-accent); background: rgba(212,168,76,0.06); }
+        .text-center { text-align: center; }
+        .mt-16 { margin-top: 16px; }
+
+        /* RESPONSIVE */
         @media (max-width: 768px) {
-            .nav {
-                position: fixed;
-                top: 72px;
-                left: 0;
-                right: 0;
-                background: rgba(15, 42, 26, 0.98);
-                backdrop-filter: blur(14px);
-                flex-direction: column;
-                padding: 24px;
-                gap: 4px;
-                border-bottom: 1px solid rgba(46, 125, 50, 0.1);
-                transform: translateY(-120%);
-                transition: var(--transition);
-                opacity: 0;
-                pointer-events: none;
-            }
-
-            .nav.open {
-                transform: translateY(0);
-                opacity: 1;
-                pointer-events: auto;
-            }
-
-            .nav a {
-                width: 100%;
-                text-align: center;
-                padding: 12px;
-            }
-
-            .hamburger {
-                display: flex;
-            }
-
-            .page-hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .section-header h2 {
-                font-size: 2rem;
-            }
-
-            .section {
-                padding: 56px 0;
-            }
-
-            .two-col {
-                gap: 24px;
-            }
-
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .membership-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .footer .container {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .logo img {
-                height: 34px;
-            }
+            .nav { position: fixed; top: 72px; left: 0; right: 0; background: rgba(15,42,26,0.98); backdrop-filter: blur(14px); flex-direction: column; padding: 24px; gap: 4px; border-bottom: 1px solid rgba(46,125,50,0.1); transform: translateY(-120%); transition: var(--transition); opacity: 0; pointer-events: none; }
+            .nav.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+            .nav a { width: 100%; text-align: center; padding: 12px; }
+            .hamburger { display: flex; }
+            .page-hero h1 { font-size: 2.5rem; }
+            .section-header h2 { font-size: 2rem; }
+            .section { padding: 56px 0; }
+            .two-col { grid-template-columns: 1fr; gap: 24px; }
+            .card-grid { grid-template-columns: 1fr; }
+            .membership-grid { grid-template-columns: 1fr; }
+            .logo img { height: 34px; }
         }
-
         @media (max-width: 480px) {
-            .page-hero h1 {
-                font-size: 2rem;
-            }
-
-            .page-hero p {
-                font-size: 1rem;
-            }
-
-            .two-col .image-block {
-                padding: 24px 16px;
-            }
-
-            .logo img {
-                height: 28px;
-            }
+            .page-hero h1 { font-size: 2rem; }
+            .page-hero p { font-size: 1rem; }
+            .two-col .image-block { padding: 24px 16px; }
+            .logo img { height: 28px; }
         }
     </style>
 </head>
 <body>
-
-    <!-- ===== HEADER ===== -->
     <header class="header" id="header">
         <div class="container">
-            <a href="index.html" class="logo">
-                <img src="logo.png" alt="Glorious Tunes Musical Band Logo" />
-            </a>
-
+            <a href="index.html" class="logo"><img src="logo.png" alt="GTMB" /></a>
             <nav class="nav" id="nav">
                 <a href="index.html">Home</a>
                 <a href="about.html" class="active">About</a>
@@ -652,253 +134,126 @@
                 <a href="events.html">Events</a>
                 <a href="trivia.html">Trivia</a>
             </nav>
-
-            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
+            <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
         </div>
     </header>
 
-    <!-- ===== PAGE HERO ===== -->
-    <section class="page-hero">
+    <section class="page-hero" id="aboutHero">
         <div class="container">
-            <h1>
-                About <span class="accent-text">Glorious Tunes</span>
-            </h1>
-            <p>
-                Discover the story, mission, and people behind GTMB — a family of
-                ex-NYSC band members united by music and purpose.
-            </p>
+            <h1><span class="accent-text">About</span> Glorious Tunes</h1>
+            <p id="aboutHeroDesc">Loading...</p>
         </div>
     </section>
 
-    <!-- ===== OUR STORY ===== -->
-    <section class="section">
+    <section class="section" id="storySection">
         <div class="container">
             <div class="section-header">
                 <span class="label">Our Journey</span>
                 <h2>A Decade of <span class="accent-text">Harmony</span></h2>
             </div>
-
             <div class="two-col">
-                <div class="text-block">
-                    <p>
-                        <strong>Glorious Tunes Musical Band (GTMB)</strong> was born out of
-                        the shared passion of ex-members of the NYSC Parade Band, Osun State.
-                        For over <strong>ten years</strong>, we have come together to keep the
-                        spirit of music alive, fostering unity and excellence among our members.
-                    </p>
-                    <p>
-                        Although our roots run deep, GTMB was officially registered as an
-                        association <strong>just two years ago</strong>, solidifying our
-                        commitment to structure, growth, and a lasting legacy. Today, we
-                        continue to perform, train, and inspire each other and our community.
-                    </p>
-                    <p>
-                        Our journey is a testament to the enduring power of music and the
-                        bonds formed through shared experience. We invite you to be part of
-                        our story.
-                    </p>
-                    <div class="mt-16">
-                    </div>
-                </div>
+                <div class="text-block" id="storyParagraphs"></div>
                 <div class="image-block">
                     <div class="icon-big">🎶</div>
-                    <h3>10+ Years of Music</h3>
-                    <p>Founded by Ex-NYSC Parade Band members<br />Officially registered since 2024</p>
-                    <div style="margin-top: 12px; color: var(--color-secondary); font-weight: 600;">
-                        <span>✦</span> Over a decade of camaraderie <span>✦</span>
-                    </div>
+                    <h3 id="storyImageText">10+ Years of Music</h3>
+                    <p id="storyImageSub">Founded by Ex-NYSC Parade Band members<br />Officially registered since 2024</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ===== MISSION & OBJECTIVES ===== -->
-    <section class="section" style="background: var(--color-primary-light);">
+    <section class="section" style="background: var(--color-primary-light);" id="missionSection">
         <div class="container">
             <div class="section-header">
                 <span class="label">Our Purpose</span>
                 <h2>Mission &amp; <span class="accent-text">Objectives</span></h2>
-                <p>As defined in Article 1.2 of our Constitution, we are driven by these core goals.</p>
+                <p>As defined in Article 1.2 of our Constitution.</p>
             </div>
-
-            <div class="card-grid">
-                <div class="card">
-                    <div class="icon">🎵</div>
-                    <h4>Promote Musical Excellence</h4>
-                    <p>We strive for the highest standard in our performances and rehearsals, continually improving our craft.</p>
-                </div>
-                <div class="card">
-                    <div class="icon">🤝</div>
-                    <h4>Foster Unity &amp; Teamwork</h4>
-                    <p>We believe in the strength of collaboration, building a supportive family of band members.</p>
-                </div>
-                <div class="card">
-                    <div class="icon">🌟</div>
-                    <h4>Enhance Our Image</h4>
-                    <p>Through public performances and activities, we showcase the talent and spirit of GTMB.</p>
-                </div>
-                <div class="card">
-                    <div class="icon">🎉</div>
-                    <h4>Entertain &amp; Inspire</h4>
-                    <p>We provide morale-boosting services to our members and the public, spreading joy through music.</p>
-                </div>
-            </div>
+            <div class="card-grid" id="missionCards"></div>
         </div>
     </section>
 
-    <!-- ===== MEMBERSHIP ===== -->
-    <section class="section">
+    <section class="section" id="membershipSection">
         <div class="container">
             <div class="section-header">
                 <span class="label">Membership</span>
                 <h2>Who We <span class="accent-text">Welcome</span></h2>
-                <p>GTMB is open to all who share our passion, with clear categories and responsibilities.</p>
+                <p>GTMB is open to all who share our passion.</p>
             </div>
-
-            <div class="membership-grid">
-                <div class="membership-item">
-                    <div class="title">🎯 Regular Members</div>
-                    <div class="desc">Ex-Banders from NYSC Parade Band, Osun, who possess maturity, musical talent, and shared interest in GTMB's objectives.</div>
-                </div>
-                <div class="membership-item">
-                    <div class="title">🤝 Associate Members</div>
-                    <div class="desc">Individuals who support the band but may not meet all regular membership criteria.</div>
-                </div>
-                <div class="membership-item">
-                    <div class="title">🏅 Honorary Members</div>
-                    <div class="desc">Conferred upon individuals who have demonstrated exceptional support, commitment, or contribution to GTMB (Article 2.4).</div>
-                </div>
-            </div>
-
-            <div style="margin-top: 40px; background: rgba(255,255,255,0.02); border-radius: var(--radius); padding: 24px 28px; border-left: 4px solid var(--color-secondary);">
-                <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 8px;">
-                    <strong style="color: var(--color-white);">Member Responsibilities:</strong> Attend rehearsals and performances, maintain discipline and professionalism, and uphold the image of GTMB.
-                </p>
-                <p style="color: var(--color-text-muted); font-size: 0.95rem;">
-                    <strong style="color: var(--color-white);">Honorary Limitations:</strong> No voting rights, excluded from sensitive discussions, restricted participation in certain activities, and no holding of executive positions.
-                </p>
-            </div>
+            <div class="membership-grid" id="membershipItems"></div>
         </div>
     </section>
 
-    <!-- ===== LEADERSHIP STRUCTURE ===== -->
-    <section class="section" style="background: var(--color-primary-light);">
+    <section class="section" style="background: var(--color-primary-light);" id="leadershipSection">
         <div class="container">
             <div class="section-header">
                 <span class="label">Organization</span>
                 <h2>Our <span class="accent-text">Leadership</span></h2>
-                <p>GTMB is governed by a clear structure that ensures accountability and strategic direction.</p>
+                <p>GTMB is governed by a clear structure.</p>
             </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px;">
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 24px;">
-                    <div style="font-size: 2rem; margin-bottom: 8px;">🏛️</div>
-                    <h4 style="color: var(--color-white); font-size: 1.2rem;">Board of Directors (BOD)</h4>
-                    <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 6px;">
-                        <strong>Composition:</strong> 5–7 members including Chairman, Secretary, Treasurer.<br />
-                        <strong>Role:</strong> Strategic direction, oversight, financial accountability.<br />
-                        <strong>Term:</strong> 2-year staggered terms, elected by regular members.
-                    </p>
-                </div>
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 24px;">
-                    <div style="font-size: 2rem; margin-bottom: 8px;">⚙️</div>
-                    <h4 style="color: var(--color-white); font-size: 1.2rem;">Executive Committee (EC)</h4>
-                    <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 6px;">
-                        <strong>Composition:</strong> President, Vice-President, Musical Director, Committee Chairs.<br />
-                        <strong>Role:</strong> Implement BOD decisions, manage daily operations, coordinate committees.<br />
-                        <strong>Term:</strong> 1-year terms, elected by regular members, approved by BOD.
-                    </p>
-                </div>
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 24px;">
-                    <div style="font-size: 2rem; margin-bottom: 8px;">📋</div>
-                    <h4 style="color: var(--color-white); font-size: 1.2rem;">Committees</h4>
-                    <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 6px;">
-                        <strong>Standing:</strong> Finance, Programs, Public Relations, Training &amp; Development.<br />
-                        <strong>Ad-Hoc:</strong> Formed as needed for special projects.<br />
-                        <strong>Role:</strong> Execute specific tasks and support EC and BOD.
-                    </p>
-                </div>
-            </div>
-
-            <div class="text-center mt-16">
-                <a href="history.html" class="btn btn-outline">View Past Executives →</a>
-            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px;" id="leadershipGrid"></div>
         </div>
     </section>
 
-    <!-- ===== CALL TO ACTION ===== -->
-    <section class="section">
+    <section class="section" id="ctaSection">
         <div class="container text-center">
-            <div style="background: rgba(46,125,50,0.06); border: 1px solid rgba(46,125,50,0.15); border-radius: var(--radius); padding: 48px 32px;">
-                <h2 style="font-size: 2.2rem; font-family: 'Playfair Display', serif; color: var(--color-white);">
-                    Join the <span class="accent-text">Glorious</span> Family
-                </h2>
-                <p style="color: var(--color-text-muted); max-width: 560px; margin: 16px auto 32px; font-size: 1.05rem;">
-                    Whether you're an ex-NYSC band member or a passionate supporter, there's a place for you at GTMB.
-                </p>
+            <div style="background:rgba(46,125,50,0.06);border:1px solid rgba(46,125,50,0.15);border-radius:var(--radius);padding:48px 32px;">
+                <h2 style="font-size:2.2rem;font-family:'Playfair Display',serif;color:var(--color-white);" id="ctaTitle">Join the <span class="accent-text">Glorious</span> Family</h2>
+                <p style="color:var(--color-text-muted);max-width:560px;margin:16px auto 32px;font-size:1.05rem;" id="ctaDesc">Loading...</p>
             </div>
         </div>
     </section>
 
-    <!-- ===== FOOTER ===== -->
     <footer class="footer">
         <div class="container">
-            <div class="footer-brand">
-                <img src="logo.png" alt="Glorious Tunes Musical Band Logo" />
-                <div class="brand-text">GTMB <span>·</span> Glorious Tunes</div>
-            </div>
-
+            <div class="footer-brand"><img src="logo.png" alt="GTMB" /><div class="brand-text">GTMB <span>·</span> Glorious Tunes</div></div>
             <div class="footer-links">
-                <a href="#">Home</a>
-                <a href="about.html">About</a>
-                <a href="history.html">History</a>
-                <a href="events.html">Events</a>
-                <a href="trivia.html">Trivia</a>
+                <a href="index.html">Home</a><a href="about.html">About</a><a href="history.html">History</a><a href="events.html">Events</a><a href="trivia.html">Trivia</a>
             </div>
-
-            <div class="footer-contact">
-                <span class="email-icon">✉️</span>
-                <a href="mailto:glorioustunesmusicalband@gmail.com">glorioustunesmusicalband@gmail.com</a>
-            </div>
-
-            <div class="footer-copy">
-                &copy; 2026 Glorious Tunes Musical Band. All rights reserved.
-            </div>
+            <div class="footer-contact"><span>✉️</span><a href="mailto:glorioustunesmusicalband@gmail.com">glorioustunesmusicalband@gmail.com</a></div>
+            <div class="footer-copy">&copy; 2026 Glorious Tunes Musical Band. All rights reserved.</div>
         </div>
     </footer>
 
-    <!-- ===== SCRIPTS ===== -->
-    <script>
-        // Hamburger toggle
+    <script type="module">
+        import { loadPage, escapeHtml } from './script.js';
+        // Hamburger & scroll (same as index)
         const hamburger = document.getElementById('hamburger');
         const nav = document.getElementById('nav');
-
-        hamburger.addEventListener('click', () => {
-            hamburger.classList.toggle('active');
-            nav.classList.toggle('open');
-        });
-
-        document.querySelectorAll('.nav a').forEach(link => {
-            link.addEventListener('click', () => {
-                hamburger.classList.remove('active');
-                nav.classList.remove('open');
-            });
-        });
-
-        // Header scroll effect
+        hamburger.addEventListener('click', () => { hamburger.classList.toggle('active'); nav.classList.toggle('open'); });
+        document.querySelectorAll('.nav a').forEach(l => l.addEventListener('click', () => { hamburger.classList.remove('active'); nav.classList.remove('open'); }));
         const header = document.getElementById('header');
-        window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 30) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        });
-    </script>
+        window.addEventListener('scroll', () => { header.classList.toggle('scrolled', window.pageYOffset > 30); });
 
+        const about = await loadPage('about');
+        if (about) {
+            document.getElementById('aboutHeroDesc').textContent = about.heroDesc;
+            document.getElementById('storyParagraphs').innerHTML = about.storyParagraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+            document.getElementById('storyImageText').textContent = about.storyImageText;
+            document.getElementById('storyImageSub').innerHTML = about.storyImageSub;
+            document.getElementById('missionCards').innerHTML = about.missionCards.map(c => `
+                <div class="card">
+                    <div class="icon">${escapeHtml(c.icon)}</div>
+                    <h4>${escapeHtml(c.title)}</h4>
+                    <p>${escapeHtml(c.desc)}</p>
+                </div>
+            `).join('');
+            document.getElementById('membershipItems').innerHTML = about.membershipItems.map(item => `
+                <div class="membership-item">
+                    <div class="title">${escapeHtml(item.title)}</div>
+                    <div class="desc">${escapeHtml(item.desc)}</div>
+                </div>
+            `).join('');
+            document.getElementById('leadershipGrid').innerHTML = about.leadershipItems.map(item => `
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius);padding:24px;">
+                    <div style="font-size:2rem;margin-bottom:8px;">${escapeHtml(item.icon)}</div>
+                    <h4 style="color:var(--color-white);font-size:1.2rem;">${escapeHtml(item.title)}</h4>
+                    <p style="color:var(--color-text-muted);font-size:0.9rem;margin-top:6px;">${escapeHtml(item.desc)}</p>
+                </div>
+            `).join('');
+            document.getElementById('ctaTitle').innerHTML = about.ctaTitle.replace(/Glorious/, '<span class="accent-text">Glorious</span>');
+            document.getElementById('ctaDesc').textContent = about.ctaDesc;
+        }
+    </script>
 </body>
 </html>
