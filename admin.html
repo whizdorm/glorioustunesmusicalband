@@ -6,7 +6,7 @@
     <title>GTMB Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
     <style>
-        /* ===== RESET & BASE ===== */
+        /* ===== RESET & BASE (unchanged) ===== */
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --color-primary: #0f2a1a;
@@ -533,7 +533,7 @@
         // ============================================================
         let appData = null;
         let currentPage = 'dashboard';
-        let activeExecRole = 'president';
+        let activeExecRole = 'inaugural'; // default to Inaugural
         let editingEventIndex = -1;
 
         // ============================================================
@@ -620,6 +620,31 @@
                 document.getElementById('loginOverlay').classList.add('hidden');
                 document.getElementById('adminLayout').classList.add('active');
                 appData = await loadAllData();
+                
+                // --- Prefill Inaugural Executives if empty ---
+                const inauguralDefault = [
+                    { name: 'Emmanuel Andrew (President)', batch: '21A' },
+                    { name: 'Ojebode Funmilayo Bimpe (Vice President Admin)', batch: '17B' },
+                    { name: 'Okewuyi Chris (Vice President Special Duties)', batch: '22A' },
+                    { name: 'Victor Akinsanya (General Secretary)', batch: '22A' },
+                    { name: 'Ubong Inyang (Provost Marshal)', batch: '19A' },
+                    { name: 'Wisdom Oludare (Public Relations Officer)', batch: '21C' },
+                    { name: 'Adekeye Joy (Welfare Officer 1)', batch: '21A' },
+                    { name: 'Afolayan Deborah (Welfare Officer 2)', batch: '22C' },
+                    { name: 'Williams Shalom (Music Director)', batch: '19A' },
+                    { name: 'Akporero Daniel (Director Of Socials)', batch: '21C' },
+                    { name: 'Mariam Busayo (Treasurer)', batch: '17B' },
+                    { name: 'Onasanya Favor (Financial Secretary)', batch: '23C' }
+                ];
+
+                // Ensure executives.inaugural exists
+                if (!appData.executives) appData.executives = {};
+                if (!appData.executives.inaugural || appData.executives.inaugural.length === 0) {
+                    appData.executives.inaugural = inauguralDefault;
+                    // Save immediately so it's stored
+                    await saveAllData(appData);
+                }
+
                 renderPage('dashboard');
             } else {
                 document.getElementById('loginOverlay').classList.remove('hidden');
@@ -1461,9 +1486,10 @@
         };
 
         // ============================================================
-        // EXECUTIVES EDITOR
+        // EXECUTIVES EDITOR (with Inaugural pre-filled)
         // ============================================================
         const EXECUTIVE_ROLES = {
+            inaugural: { label: 'Inaugural Excos', icon: '🏆' },
             president: { label: 'President', icon: '✅' },
             major: { label: 'Major', icon: '🥁' },
             provost: { label: 'Provost', icon: '🧑🏾‍✈️' },
@@ -1694,6 +1720,23 @@
             if (!confirm('⚠️ Are you sure you want to reset ALL data to defaults? This cannot be undone!')) return;
             if (!confirm('Really? All your custom data will be lost!')) return;
             appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+            // Reapply inaugural defaults after reset
+            const inauguralDefault = [
+                { name: 'Emmanuel Andrew (President)', batch: '21A' },
+                { name: 'Ojebode Funmilayo Bimpe (Vice President Admin)', batch: '17B' },
+                { name: 'Okewuyi Chris (Vice President Special Duties)', batch: '22A' },
+                { name: 'Victor Akinsanya (General Secretary)', batch: '22A' },
+                { name: 'Ubong Inyang (Provost Marshal)', batch: '19A' },
+                { name: 'Wisdom Oludare (Public Relations Officer)', batch: '21C' },
+                { name: 'Adekeye Joy (Welfare Officer 1)', batch: '21A' },
+                { name: 'Afolayan Deborah (Welfare Officer 2)', batch: '22C' },
+                { name: 'Williams Shalom (Music Director)', batch: '19A' },
+                { name: 'Akporero Daniel (Director Of Socials)', batch: '21C' },
+                { name: 'Mariam Busayo (Treasurer)', batch: '17B' },
+                { name: 'Onasanya Favor (Financial Secretary)', batch: '23C' }
+            ];
+            if (!appData.executives) appData.executives = {};
+            appData.executives.inaugural = inauguralDefault;
             await saveAllData(appData);
             toast('All data reset to defaults!');
             renderPage(currentPage);
