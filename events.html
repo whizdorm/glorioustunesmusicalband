@@ -6,132 +6,682 @@
     <title>Events | Glorious Tunes Musical Band</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
     <style>
-        /* ===== RESET & BASE ===== (same as index) */
-        /* I'll include the essential styles for events. For brevity, assume the same base styles are included. */
-        /* In production, you'd link a shared CSS file. */
-        :root { --color-primary: #0f2a1a; --color-primary-light: #1a3d2a; --color-secondary: #2e7d32; --color-accent: #d4a84c; --color-accent-light: #f0d080; --color-white: #ffffff; --color-text-light: #f0f5ee; --color-text-muted: #b8c4b0; --shadow-accent: 0 4px 30px rgba(46,125,50,0.30); --shadow-card: 0 8px 32px rgba(0,0,0,0.45); --radius: 12px; --transition: 0.3s ease; }
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body { font-family: "Inter", sans-serif; background-color: var(--color-primary); color: var(--color-text-light); line-height: 1.6; overflow-x: hidden; }
-        a { text-decoration: none; color: inherit; }
-        ul { list-style: none; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--color-primary); } ::-webkit-scrollbar-thumb { background: var(--color-secondary); border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
-        .accent-text { color: var(--color-accent); }
-
-        /* HEADER (same) – include from index */
-        .header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(15,42,26,0.92); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(46,125,50,0.2); transition: var(--transition); }
-        .header.scrolled { background: rgba(15,42,26,0.97); box-shadow: 0 4px 30px rgba(0,0,0,0.5); }
-        .header .container { display: flex; align-items: center; justify-content: space-between; height: 72px; }
-        .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-        .logo img { height: 42px; width: auto; display: block; transition: var(--transition); }
-        .logo img:hover { opacity: 0.85; }
-        .nav { display: flex; align-items: center; gap: 8px; }
-        .nav a { padding: 8px 16px; border-radius: 6px; font-size: 0.875rem; font-weight: 500; color: var(--color-text-muted); transition: var(--transition); }
-        .nav a:hover, .nav a.active { color: var(--color-white); background: rgba(46,125,50,0.15); }
-        .nav a.active { color: var(--color-accent); }
-        .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; background: none; border: none; }
-        .hamburger span { display: block; width: 26px; height: 2.5px; background: var(--color-white); border-radius: 2px; transition: var(--transition); }
-        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
-        .hamburger.active span:nth-child(2) { opacity: 0; }
-        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
-
-        /* PAGE HERO */
-        .page-hero { padding: 140px 0 60px; background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-primary-light) 60%, #0f261a 100%); border-bottom: 1px solid rgba(46,125,50,0.1); position: relative; }
-        .page-hero::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(to top, var(--color-primary), transparent); pointer-events: none; }
-        .page-hero .container { position: relative; z-index: 2; text-align: center; }
-        .page-hero h1 { font-size: 3.5rem; font-family: "Playfair Display", serif; font-weight: 700; margin-bottom: 16px; }
-        .page-hero h1 .accent-text { display: inline-block; position: relative; }
-        .page-hero h1 .accent-text::after { content: ""; position: absolute; bottom: 4px; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--color-accent), transparent); border-radius: 2px; }
-        .page-hero p { color: var(--color-text-muted); font-size: 1.2rem; max-width: 640px; margin: 0 auto; }
-
-        /* SECTION */
-        .section { padding: 80px 0; }
-        .section-header { text-align: center; margin-bottom: 48px; }
-        .section-header .label { display: inline-block; font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--color-secondary); background: rgba(46,125,50,0.12); padding: 4px 16px; border-radius: 20px; margin-bottom: 12px; }
-        .section-header h2 { font-size: 2.5rem; font-family: "Playfair Display", serif; font-weight: 700; color: var(--color-white); }
-        .section-header p { color: var(--color-text-muted); max-width: 560px; margin: 12px auto 0; font-size: 1.05rem; }
-
-        /* EVENT CARD */
-        .event-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); overflow: hidden; margin-bottom: 48px; }
-        .event-card .event-header { background: linear-gradient(135deg, rgba(46,125,50,0.15), rgba(212,168,76,0.08)); padding: 24px 32px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .event-card .event-header h2 { font-family: "Playfair Display", serif; font-size: 2rem; color: var(--color-accent); }
-        .event-card .event-header .subtitle { color: var(--color-text-muted); font-size: 1rem; margin-top: 4px; }
-        .event-card .event-body { padding: 32px; }
-        .flyer-placeholder { margin-bottom: 32px; border-radius: var(--radius); overflow: hidden; background: rgba(255,255,255,0.04); border: 2px dashed rgba(46,125,50,0.15); padding: 40px 20px; text-align: center; transition: var(--transition); }
-        .flyer-placeholder .placeholder-icon { font-size: 4rem; margin-bottom: 8px; opacity: 0.5; }
-        .flyer-placeholder .placeholder-text { color: var(--color-text-muted); font-size: 1rem; }
-        .flyer-placeholder .placeholder-text strong { color: var(--color-accent); }
-        .flyer-placeholder:hover { border-color: rgba(46,125,50,0.3); background: rgba(255,255,255,0.06); }
-        .flyer-image { margin-bottom: 32px; border-radius: var(--radius); overflow: hidden; max-height: 400px; display: flex; justify-content: center; background: rgba(255,255,255,0.02); }
-        .flyer-image img { width: 100%; height: auto; max-height: 400px; object-fit: contain; display: block; }
-        .event-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 40px; margin-top: 24px; background: rgba(255,255,255,0.02); padding: 24px 28px; border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.04); }
-        .event-info-grid .info-item { display: flex; flex-direction: column; gap: 4px; }
-        .event-info-grid .info-item .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-accent); font-weight: 600; }
-        .event-info-grid .info-item .value { font-size: 1rem; color: var(--color-text-light); line-height: 1.5; }
-        .event-info-grid .info-item .value strong { color: var(--color-white); }
-        .event-features { display: flex; flex-wrap: wrap; gap: 12px 20px; margin: 16px 0 8px; }
-        .event-features .feature-tag { background: rgba(46,125,50,0.12); color: var(--color-accent-light); padding: 4px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
-
-        /* PAST EVENTS */
-        .past-events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 24px; }
-        .past-event-item { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: var(--radius); padding: 20px 24px; transition: var(--transition); }
-        .past-event-item:hover { background: rgba(255,255,255,0.04); border-color: rgba(46,125,50,0.15); }
-        .past-event-item .date { color: var(--color-accent); font-weight: 600; font-size: 0.85rem; }
-        .past-event-item h4 { color: var(--color-white); font-size: 1.1rem; margin: 4px 0 2px; }
-        .past-event-item p { color: var(--color-text-muted); font-size: 0.9rem; }
-
-        /* BUTTONS & FOOTER (same as index) */
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; transition: var(--transition); border: none; cursor: pointer; }
-        .btn-primary { background: linear-gradient(135deg, var(--color-secondary), #1b5e20); color: var(--color-white); box-shadow: 0 4px 20px rgba(46,125,50,0.30); }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 35px rgba(46,125,50,0.40); }
-        .btn-outline { background: transparent; color: var(--color-white); border: 1.5px solid rgba(255,255,255,0.2); }
-        .btn-outline:hover { border-color: var(--color-accent); color: var(--color-accent); background: rgba(212,168,76,0.06); }
-        .text-center { text-align: center; }
-        .mt-16 { margin-top: 16px; }
-
-        .footer { background: var(--color-primary); border-top: 1px solid rgba(255,255,255,0.04); padding: 48px 0 32px; }
-        .footer .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; }
-        .footer .footer-brand { display: flex; align-items: center; gap: 12px; }
-        .footer .footer-brand img { height: 32px; width: auto; display: block; }
-        .footer .footer-brand .brand-text { font-family: "Playfair Display", serif; font-weight: 700; font-size: 1.1rem; color: var(--color-white); }
-        .footer .footer-brand .brand-text span { color: var(--color-accent); }
-        .footer .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
-        .footer .footer-links a { color: var(--color-text-muted); font-size: 0.85rem; transition: var(--transition); }
-        .footer .footer-links a:hover { color: var(--color-accent); }
-        .footer .footer-contact { display: flex; align-items: center; gap: 8px; color: var(--color-text-muted); font-size: 0.85rem; }
-        .footer .footer-contact a { color: var(--color-accent); font-weight: 500; transition: var(--transition); }
-        .footer .footer-contact a:hover { color: var(--color-accent-light); text-decoration: underline; }
-        .footer .footer-copy { color: var(--color-text-muted); font-size: 0.8rem; width: 100%; text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.04); }
-
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .nav { position: fixed; top: 72px; left: 0; right: 0; background: rgba(15,42,26,0.98); backdrop-filter: blur(14px); flex-direction: column; padding: 24px; gap: 4px; border-bottom: 1px solid rgba(46,125,50,0.1); transform: translateY(-120%); transition: var(--transition); opacity: 0; pointer-events: none; }
-            .nav.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
-            .nav a { width: 100%; text-align: center; padding: 12px; }
-            .hamburger { display: flex; }
-            .page-hero h1 { font-size: 2.5rem; }
-            .section-header h2 { font-size: 2rem; }
-            .section { padding: 56px 0; }
-            .event-info-grid { grid-template-columns: 1fr; gap: 16px; padding: 16px; }
-            .event-card .event-header { padding: 16px 20px; }
-            .event-card .event-header h2 { font-size: 1.6rem; }
-            .event-card .event-body { padding: 20px; }
-            .flyer-placeholder { padding: 24px 16px; }
-            .logo img { height: 34px; }
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+
+        :root {
+            --color-primary: #0f2a1a;
+            --color-primary-light: #1a3d2a;
+            --color-primary-mid: #2a5a3a;
+            --color-secondary: #2e7d32;
+            --color-accent: #d4a84c;
+            --color-accent-light: #f0d080;
+            --color-white: #ffffff;
+            --color-text-light: #f0f5ee;
+            --color-text-muted: #b8c4b0;
+            --shadow-accent: 0 4px 30px rgba(46, 125, 50, 0.30);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.45);
+            --radius: 12px;
+            --transition: 0.3s ease;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: var(--color-primary);
+            color: var(--color-text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--color-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-secondary);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-accent);
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .heading-serif {
+            font-family: "Playfair Display", serif;
+            font-weight: 700;
+        }
+
+        .accent-text {
+            color: var(--color-accent);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(15, 42, 26, 0.92);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(46, 125, 50, 0.2);
+            transition: var(--transition);
+        }
+
+        .header.scrolled {
+            background: rgba(15, 42, 26, 0.97);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .logo img {
+            height: 42px;
+            width: auto;
+            display: block;
+            transition: var(--transition);
+        }
+
+        .logo img:hover {
+            opacity: 0.85;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav a {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text-muted);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            color: var(--color-white);
+            background: rgba(46, 125, 50, 0.15);
+        }
+
+        .nav a.active {
+            color: var(--color-accent);
+        }
+
+        .nav a.cta-nav {
+            background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
+            color: var(--color-white);
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 6px;
+        }
+
+        .nav a.cta-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-accent);
+            background: linear-gradient(135deg, #388e3c, #1b5e20);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 4px;
+            background: none;
+            border: none;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 26px;
+            height: 2.5px;
+            background: var(--color-white);
+            border-radius: 2px;
+            transition: var(--transition);
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* ===== PAGE HERO ===== */
+        .page-hero {
+            padding: 140px 0 60px;
+            background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-primary-light) 60%, #0f261a 100%);
+            border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+            position: relative;
+        }
+
+        .page-hero::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to top, var(--color-primary), transparent);
+            pointer-events: none;
+        }
+
+        .page-hero .container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .page-hero h1 {
+            font-size: 3.5rem;
+            font-family: "Playfair Display", serif;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .page-hero h1 .accent-text {
+            display: inline-block;
+            position: relative;
+        }
+
+        .page-hero h1 .accent-text::after {
+            content: "";
+            position: absolute;
+            bottom: 4px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-accent), transparent);
+            border-radius: 2px;
+        }
+
+        .page-hero p {
+            color: var(--color-text-muted);
+            font-size: 1.2rem;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        /* ===== SECTION ===== */
+        .section {
+            padding: 80px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .section-header .label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--color-secondary);
+            background: rgba(46, 125, 50, 0.12);
+            padding: 4px 16px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-family: "Playfair Display", serif;
+            font-weight: 700;
+            color: var(--color-white);
+        }
+
+        .section-header p {
+            color: var(--color-text-muted);
+            max-width: 560px;
+            margin: 12px auto 0;
+            font-size: 1.05rem;
+        }
+
+        /* ===== EVENT DETAIL CARD ===== */
+        .event-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 48px;
+        }
+
+        .event-card .event-header {
+            background: linear-gradient(135deg, rgba(46, 125, 50, 0.15), rgba(212, 168, 76, 0.08));
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .event-card .event-header h2 {
+            font-family: "Playfair Display", serif;
+            font-size: 2rem;
+            color: var(--color-accent);
+        }
+
+        .event-card .event-header .subtitle {
+            color: var(--color-text-muted);
+            font-size: 1rem;
+            margin-top: 4px;
+        }
+
+        .event-card .event-body {
+            padding: 32px;
+        }
+
+        /* Flyer placeholder / image */
+        .flyer-placeholder {
+            margin-bottom: 32px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.04);
+            border: 2px dashed rgba(46, 125, 50, 0.15);
+            padding: 40px 20px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .flyer-placeholder .placeholder-icon {
+            font-size: 4rem;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        .flyer-placeholder .placeholder-text {
+            color: var(--color-text-muted);
+            font-size: 1rem;
+        }
+
+        .flyer-placeholder .placeholder-text strong {
+            color: var(--color-accent);
+        }
+
+        .flyer-placeholder:hover {
+            border-color: rgba(46, 125, 50, 0.3);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .flyer-image {
+            margin-bottom: 32px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            max-height: 400px;
+            display: flex;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .flyer-image img {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* Event info grid */
+        .event-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px 40px;
+            margin-top: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 24px 28px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .event-info-grid .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .event-info-grid .info-item .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-accent);
+            font-weight: 600;
+        }
+
+        .event-info-grid .info-item .value {
+            font-size: 1rem;
+            color: var(--color-text-light);
+            line-height: 1.5;
+        }
+
+        .event-info-grid .info-item .value strong {
+            color: var(--color-white);
+        }
+
+        .event-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            margin: 16px 0 8px;
+        }
+
+        .event-features .feature-tag {
+            background: rgba(46, 125, 50, 0.12);
+            color: var(--color-accent-light);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
+            color: var(--color-white);
+            box-shadow: 0 4px 20px rgba(46, 125, 50, 0.30);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 35px rgba(46, 125, 50, 0.40);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--color-white);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+            background: rgba(212, 168, 76, 0.06);
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-16 {
+            margin-top: 16px;
+        }
+
+        /* ===== PAST EVENTS ===== */
+        .past-events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+        }
+
+        .past-event-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            transition: var(--transition);
+        }
+
+        .past-event-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(46, 125, 50, 0.15);
+        }
+
+        .past-event-item .date {
+            color: var(--color-accent);
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .past-event-item h4 {
+            color: var(--color-white);
+            font-size: 1.1rem;
+            margin: 4px 0 2px;
+        }
+
+        .past-event-item p {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--color-primary);
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 48px 0 32px;
+        }
+
+        .footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer .footer-brand img {
+            height: 32px;
+            width: auto;
+            display: block;
+        }
+
+        .footer .footer-brand .brand-text {
+            font-family: "Playfair Display", serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--color-white);
+        }
+
+        .footer .footer-brand .brand-text span {
+            color: var(--color-accent);
+        }
+
+        .footer .footer-links {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer .footer-links a {
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .footer .footer-links a:hover {
+            color: var(--color-accent);
+        }
+
+        .footer .footer-contact {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer .footer-contact a {
+            color: var(--color-accent);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .footer .footer-contact a:hover {
+            color: var(--color-accent-light);
+            text-decoration: underline;
+        }
+
+        .footer .footer-copy {
+            color: var(--color-text-muted);
+            font-size: 0.8rem;
+            width: 100%;
+            text-align: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .nav {
+                position: fixed;
+                top: 72px;
+                left: 0;
+                right: 0;
+                background: rgba(15, 42, 26, 0.98);
+                backdrop-filter: blur(14px);
+                flex-direction: column;
+                padding: 24px;
+                gap: 4px;
+                border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+                transform: translateY(-120%);
+                transition: var(--transition);
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .nav.open {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .nav a {
+                width: 100%;
+                text-align: center;
+                padding: 12px;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .page-hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .section {
+                padding: 56px 0;
+            }
+
+            .event-info-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                padding: 16px;
+            }
+
+            .event-card .event-header {
+                padding: 16px 20px;
+            }
+
+            .event-card .event-header h2 {
+                font-size: 1.6rem;
+            }
+
+            .event-card .event-body {
+                padding: 20px;
+            }
+
+            .flyer-placeholder {
+                padding: 24px 16px;
+            }
+
+            .logo img {
+                height: 34px;
+            }
+        }
+
         @media (max-width: 480px) {
-            .page-hero h1 { font-size: 2rem; }
-            .page-hero p { font-size: 1rem; }
-            .event-features .feature-tag { font-size: 0.75rem; }
-            .logo img { height: 28px; }
+            .page-hero h1 {
+                font-size: 2rem;
+            }
+            .page-hero p {
+                font-size: 1rem;
+            }
+            .event-features .feature-tag {
+                font-size: 0.75rem;
+            }
+            .logo img {
+                height: 28px;
+            }
         }
     </style>
 </head>
 <body>
+
+    <!-- ===== HEADER ===== -->
     <header class="header" id="header">
         <div class="container">
-            <a href="index.html" class="logo"><img src="logo.png" alt="GTMB" /></a>
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Glorious Tunes Musical Band Logo" />
+            </a>
+
             <nav class="nav" id="nav">
                 <a href="index.html">Home</a>
                 <a href="about.html">About</a>
@@ -139,17 +689,29 @@
                 <a href="events.html" class="active">Events</a>
                 <a href="trivia.html">Trivia</a>
             </nav>
-            <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+
+            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
     </header>
 
+    <!-- ===== PAGE HERO ===== -->
     <section class="page-hero">
         <div class="container">
-            <h1>Our <span class="accent-text">Events</span></h1>
-            <p id="eventsHeroDesc">Loading...</p>
+            <h1>
+                Our <span class="accent-text">Events</span>
+            </h1>
+            <p id="eventsHeroDesc">
+                From reunions to performances — stay connected with the GTMB community.
+                Check out our upcoming and past events.
+            </p>
         </div>
     </section>
 
+    <!-- ===== UPCOMING EVENTS ===== -->
     <section class="section">
         <div class="container">
             <div class="section-header">
@@ -157,88 +719,171 @@
                 <h2>Upcoming <span class="accent-text">Events</span></h2>
                 <p>Join us at our upcoming gatherings and celebrations.</p>
             </div>
-            <div id="upcomingEventsContainer"></div>
+
+            <div id="upcomingEventsContainer">
+                <!-- Dynamic content -->
+            </div>
         </div>
     </section>
 
+    <!-- ===== PAST EVENTS ===== -->
     <section class="section" style="background: var(--color-primary-light);">
         <div class="container">
             <div class="section-header">
                 <span class="label">Memories</span>
-                <h2>Past <span class="accent-text">Events/Reunions</span></h2>
-                <p>Look back at the moments that defined our journey.</p>
+                <h2>Past <span class="accent-text">Reunions</span></h2>
+                <p>Look back at the moments that defined our journey from the very beginning.</p>
             </div>
-            <div class="past-events-grid" id="pastEventsContainer"></div>
+
+            <div class="past-events-grid" id="pastEventsContainer">
+                <!-- Dynamic content -->
+            </div>
         </div>
     </section>
 
+    <!-- ===== FOOTER ===== -->
     <footer class="footer">
         <div class="container">
-            <div class="footer-brand"><img src="logo.png" alt="GTMB" /><div class="brand-text">GTMB <span>·</span> Glorious Tunes</div></div>
-            <div class="footer-links">
-                <a href="index.html">Home</a><a href="about.html">About</a><a href="history.html">History</a><a href="events.html">Events</a><a href="trivia.html">Trivia</a>
+            <div class="footer-brand">
+                <img src="logo.png" alt="Glorious Tunes Musical Band Logo" />
+                <div class="brand-text">GTMB <span>·</span> Glorious Tunes</div>
             </div>
-            <div class="footer-contact"><span>✉️</span><a href="mailto:glorioustunesmusicalband@gmail.com">glorioustunesmusicalband@gmail.com</a></div>
-            <div class="footer-copy">&copy; 2026 Glorious Tunes Musical Band. All rights reserved.</div>
+
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="history.html">History</a>
+                <a href="events.html">Events</a>
+                <a href="trivia.html">Trivia</a>
+            </div>
+
+            <div class="footer-contact">
+                <span>✉️</span>
+                <a href="mailto:glorioustunesmusicalband@gmail.com">glorioustunesmusicalband@gmail.com</a>
+            </div>
+
+            <div class="footer-copy">
+                &copy; 2026 Glorious Tunes Musical Band. All rights reserved.
+            </div>
         </div>
     </footer>
 
+    <!-- ===== SCRIPTS ===== -->
     <script type="module">
-        import { loadPage, escapeHtml } from './script.js';
-        // Hamburger & scroll
+        import { loadPage, escapeHtml, sanitizeHtml } from './script.js';
+
+        // ---- Hamburger ----
         const hamburger = document.getElementById('hamburger');
         const nav = document.getElementById('nav');
-        hamburger.addEventListener('click', () => { hamburger.classList.toggle('active'); nav.classList.toggle('open'); });
-        document.querySelectorAll('.nav a').forEach(l => l.addEventListener('click', () => { hamburger.classList.remove('active'); nav.classList.remove('open'); }));
-        const header = document.getElementById('header');
-        window.addEventListener('scroll', () => { header.classList.toggle('scrolled', window.pageYOffset > 30); });
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            nav.classList.toggle('open');
+        });
+        document.querySelectorAll('.nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                nav.classList.remove('open');
+            });
+        });
 
+        // ---- Header scroll ----
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 30) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // ---- Load Events Data ----
         const events = await loadPage('events');
         if (events) {
-            document.getElementById('eventsHeroDesc').textContent = events.heroDesc;
+            // Hero Description
+            document.getElementById('eventsHeroDesc').innerHTML = sanitizeHtml(events.heroDesc);
 
-            // Upcoming
+            // ---- Upcoming Events ----
             const upcoming = events.upcomingEvents || [];
             const upcomingContainer = document.getElementById('upcomingEventsContainer');
+
             if (upcoming.length === 0) {
-                upcomingContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px 20px;color:var(--color-text-muted);">No upcoming events scheduled.</div>`;
+                upcomingContainer.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:var(--color-text-muted);">
+                        <p style="font-size:1.2rem;">No upcoming events scheduled at the moment.</p>
+                        <p style="font-size:0.9rem;">Check back soon for updates!</p>
+                    </div>
+                `;
             } else {
                 upcomingContainer.innerHTML = upcoming.map(event => `
                     <div class="event-card">
                         <div class="event-header">
-                            <h2>${escapeHtml(event.title)}</h2>
-                            <div class="subtitle">${escapeHtml(event.subtitle)}</div>
+                            <h2>${sanitizeHtml(event.title)}</h2>
+                            <div class="subtitle">${sanitizeHtml(event.subtitle)}</div>
                         </div>
                         <div class="event-body">
-                            ${event.flyerImage ? `<div class="flyer-image"><img src="${escapeHtml(event.flyerImage)}" alt="Event Flyer" /></div>` : `<div class="flyer-placeholder"><div class="placeholder-icon">🖼️</div><div class="placeholder-text"><strong>Event Flyer</strong></div></div>`}
-                            ${event.features && event.features.length ? `<div class="event-features">${event.features.map(f => `<span class="feature-tag">${escapeHtml(f)}</span>`).join('')}</div>` : ''}
-                            ${event.details && event.details.length ? `<div class="event-info-grid">${event.details.map(d => `
-                                <div class="info-item">
-                                    <span class="label">${escapeHtml(d.label)}</span>
-                                    <span class="value"><strong>${escapeHtml(d.venue)}</strong><br />${escapeHtml(d.location)}<br /><span style="color:var(--color-text-muted);">${escapeHtml(d.time)}</span></span>
+                            ${event.flyerImage ? `
+                                <div class="flyer-image">
+                                    <img src="${escapeHtml(event.flyerImage)}" alt="Event Flyer" />
                                 </div>
-                            `).join('')}</div>` : ''}
-                            <div class="text-center mt-16"><a href="#" class="btn btn-primary">${escapeHtml(event.ctaText)}</a></div>
+                            ` : `
+                                <div class="flyer-placeholder">
+                                    <div class="placeholder-icon">🖼️</div>
+                                    <div class="placeholder-text">
+                                        <strong>Event Flyer</strong>
+                                    </div>
+                                </div>
+                            `}
+
+                            ${event.features && event.features.length > 0 ? `
+                                <div class="event-features">
+                                    ${event.features.map(f => `<span class="feature-tag">${escapeHtml(f)}</span>`).join('')}
+                                </div>
+                            ` : ''}
+
+                            ${event.details && event.details.length > 0 ? `
+                                <div class="event-info-grid">
+                                    ${event.details.map(d => `
+                                        <div class="info-item">
+                                            <span class="label">${sanitizeHtml(d.label)}</span>
+                                            <span class="value">
+                                                <strong>${sanitizeHtml(d.venue)}</strong><br />
+                                                ${sanitizeHtml(d.location)}<br />
+                                                <span style="color: var(--color-text-muted);">${sanitizeHtml(d.time)}</span>
+                                            </span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+
+                            <div class="text-center mt-16">
+                                <a href="#" class="btn btn-primary">${sanitizeHtml(event.ctaText)}</a>
+                            </div>
                         </div>
                     </div>
                 `).join('');
             }
 
-            // Past
+            // ---- Past Events ----
             const past = events.pastEvents || [];
             const pastContainer = document.getElementById('pastEventsContainer');
+
             if (past.length === 0) {
-                pastContainer.innerHTML = `<div class="empty-state" style="text-align:center;padding:40px 20px;color:var(--color-text-muted);">No past events.</div>`;
+                pastContainer.innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:var(--color-text-muted);">
+                        <p>No past events to display.</p>
+                    </div>
+                `;
             } else {
                 pastContainer.innerHTML = past.map(ev => `
                     <div class="past-event-item">
                         <div class="date">${escapeHtml(ev.year)}</div>
-                        <h4>${escapeHtml(ev.title)}</h4>
-                        <p>${escapeHtml(ev.desc)}</p>
+                        <h4>${sanitizeHtml(ev.title)}</h4>
+                        <p>${sanitizeHtml(ev.desc)}</p>
                     </div>
                 `).join('');
             }
         }
     </script>
+
 </body>
 </html>
