@@ -6,7 +6,7 @@
     <title>GTMB Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
     <style>
-        /* ===== RESET & BASE (unchanged) ===== */
+        /* ===== RESET & BASE ===== */
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --color-primary: #0f2a1a;
@@ -533,8 +533,26 @@
         // ============================================================
         let appData = null;
         let currentPage = 'dashboard';
-        let activeExecRole = 'inaugural'; // default to Inaugural
+        let activeExecRole = 'inaugural';
         let editingEventIndex = -1;
+
+        // ============================================================
+        // INAUGURAL DEFAULT LIST
+        // ============================================================
+        const INAUGURAL_DEFAULT = [
+            { name: 'Emmanuel Andrew (President)', batch: '21A' },
+            { name: 'Ojebode Funmilayo Bimpe (Vice President Admin)', batch: '17B' },
+            { name: 'Okewuyi Chris (Vice President Special Duties)', batch: '22A' },
+            { name: 'Victor Akinsanya (General Secretary)', batch: '22A' },
+            { name: 'Ubong Inyang (Provost Marshal)', batch: '19A' },
+            { name: 'Wisdom Oludare (Public Relations Officer)', batch: '21C' },
+            { name: 'Adekeye Joy (Welfare Officer 1)', batch: '21A' },
+            { name: 'Afolayan Deborah (Welfare Officer 2)', batch: '22C' },
+            { name: 'Williams Shalom (Music Director)', batch: '19A' },
+            { name: 'Akporero Daniel (Director Of Socials)', batch: '21C' },
+            { name: 'Mariam Busayo (Treasurer)', batch: '17B' },
+            { name: 'Onasanya Favor (Financial Secretary)', batch: '23C' }
+        ];
 
         // ============================================================
         // TOAST WRAPPER
@@ -620,28 +638,11 @@
                 document.getElementById('loginOverlay').classList.add('hidden');
                 document.getElementById('adminLayout').classList.add('active');
                 appData = await loadAllData();
-                
-                // --- Prefill Inaugural Executives if empty ---
-                const inauguralDefault = [
-                    { name: 'Emmanuel Andrew (President)', batch: '21A' },
-                    { name: 'Ojebode Funmilayo Bimpe (Vice President Admin)', batch: '17B' },
-                    { name: 'Okewuyi Chris (Vice President Special Duties)', batch: '22A' },
-                    { name: 'Victor Akinsanya (General Secretary)', batch: '22A' },
-                    { name: 'Ubong Inyang (Provost Marshal)', batch: '19A' },
-                    { name: 'Wisdom Oludare (Public Relations Officer)', batch: '21C' },
-                    { name: 'Adekeye Joy (Welfare Officer 1)', batch: '21A' },
-                    { name: 'Afolayan Deborah (Welfare Officer 2)', batch: '22C' },
-                    { name: 'Williams Shalom (Music Director)', batch: '19A' },
-                    { name: 'Akporero Daniel (Director Of Socials)', batch: '21C' },
-                    { name: 'Mariam Busayo (Treasurer)', batch: '17B' },
-                    { name: 'Onasanya Favor (Financial Secretary)', batch: '23C' }
-                ];
 
-                // Ensure executives.inaugural exists
+                // Ensure executives.inaugural exists and is filled
                 if (!appData.executives) appData.executives = {};
                 if (!appData.executives.inaugural || appData.executives.inaugural.length === 0) {
-                    appData.executives.inaugural = inauguralDefault;
-                    // Save immediately so it's stored
+                    appData.executives.inaugural = INAUGURAL_DEFAULT;
                     await saveAllData(appData);
                 }
 
@@ -907,7 +908,7 @@
         };
 
         // ============================================================
-        // ABOUT PAGE EDITOR
+        // ABOUT PAGE EDITOR (with Anthem)
         // ============================================================
         function renderAboutEditor() {
             const about = appData.pages.about;
@@ -991,6 +992,16 @@
                     </div>
                     <button class="btn btn-primary" onclick="window.saveAboutCta()">Save CTA</button>
                 </div>
+                <!-- ===== GTMB ANTHEM CARD ===== -->
+                <div class="card">
+                    <div class="card-title">GTMB Anthem</div>
+                    <div class="form-group">
+                        <label>Anthem Lyrics</label>
+                        <textarea id="aboutAnthem" rows="10" placeholder="Enter the anthem lyrics...">${escapeHtml(about.anthem || '')}</textarea>
+                        <div class="helper">The anthem will be displayed on the About page in a dedicated section.</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.saveAboutAnthem()">💾 Save Anthem</button>
+                </div>
             `;
         }
 
@@ -1001,16 +1012,25 @@
             await saveAllData(appData);
             toast('About hero saved!');
         };
+
         window.saveAboutStory = async function() {
             appData.pages.about.storyParagraphs = document.getElementById('aboutStory').value.split('\n').filter(s => s.trim());
             await saveAllData(appData);
             toast('Story saved!');
         };
+
+        window.saveAboutAnthem = async function() {
+            appData.pages.about.anthem = document.getElementById('aboutAnthem').value;
+            await saveAllData(appData);
+            toast('Anthem saved!');
+        };
+
         window.addMissionCard = function() {
             appData.pages.about.missionCards.push({ icon: '🎯', title: 'New Mission', desc: 'Description here' });
             renderPage('about');
             toast('Mission card added!');
         };
+
         window.saveAboutMission = async function() {
             const cards = appData.pages.about.missionCards;
             cards.forEach((card, i) => {
@@ -1021,11 +1041,13 @@
             await saveAllData(appData);
             toast('Mission cards saved!');
         };
+
         window.addMembershipItem = function() {
             appData.pages.about.membershipItems.push({ title: 'New Membership', desc: 'Description here' });
             renderPage('about');
             toast('Membership item added!');
         };
+
         window.saveAboutMembership = async function() {
             const items = appData.pages.about.membershipItems;
             items.forEach((item, i) => {
@@ -1035,11 +1057,13 @@
             await saveAllData(appData);
             toast('Membership saved!');
         };
+
         window.addLeadershipItem = function() {
             appData.pages.about.leadershipItems.push({ icon: '🏛️', title: 'New Leadership', desc: 'Description here' });
             renderPage('about');
             toast('Leadership item added!');
         };
+
         window.saveAboutLeadership = async function() {
             const items = appData.pages.about.leadershipItems;
             items.forEach((item, i) => {
@@ -1050,6 +1074,7 @@
             await saveAllData(appData);
             toast('Leadership saved!');
         };
+
         window.saveAboutCta = async function() {
             const about = appData.pages.about;
             about.ctaTitle = document.getElementById('aboutCtaTitle').value;
@@ -1486,7 +1511,7 @@
         };
 
         // ============================================================
-        // EXECUTIVES EDITOR (with Inaugural pre-filled)
+        // EXECUTIVES EDITOR (with Inaugural role)
         // ============================================================
         const EXECUTIVE_ROLES = {
             inaugural: { label: 'Inaugural Excos', icon: '🏆' },
@@ -1720,23 +1745,8 @@
             if (!confirm('⚠️ Are you sure you want to reset ALL data to defaults? This cannot be undone!')) return;
             if (!confirm('Really? All your custom data will be lost!')) return;
             appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
-            // Reapply inaugural defaults after reset
-            const inauguralDefault = [
-                { name: 'Emmanuel Andrew (President)', batch: '21A' },
-                { name: 'Ojebode Funmilayo Bimpe (Vice President Admin)', batch: '17B' },
-                { name: 'Okewuyi Chris (Vice President Special Duties)', batch: '22A' },
-                { name: 'Victor Akinsanya (General Secretary)', batch: '22A' },
-                { name: 'Ubong Inyang (Provost Marshal)', batch: '19A' },
-                { name: 'Wisdom Oludare (Public Relations Officer)', batch: '21C' },
-                { name: 'Adekeye Joy (Welfare Officer 1)', batch: '21A' },
-                { name: 'Afolayan Deborah (Welfare Officer 2)', batch: '22C' },
-                { name: 'Williams Shalom (Music Director)', batch: '19A' },
-                { name: 'Akporero Daniel (Director Of Socials)', batch: '21C' },
-                { name: 'Mariam Busayo (Treasurer)', batch: '17B' },
-                { name: 'Onasanya Favor (Financial Secretary)', batch: '23C' }
-            ];
             if (!appData.executives) appData.executives = {};
-            appData.executives.inaugural = inauguralDefault;
+            appData.executives.inaugural = INAUGURAL_DEFAULT;
             await saveAllData(appData);
             toast('All data reset to defaults!');
             renderPage(currentPage);
