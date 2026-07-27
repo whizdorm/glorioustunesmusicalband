@@ -269,7 +269,16 @@ export const DEFAULT_DATA = {
                 { icon: '📋', title: 'Committees', desc: 'Standing: Finance, Programs, Public Relations, Training & Development.<br />Ad-Hoc: Formed as needed for special projects.<br />Role: Execute specific tasks and support EC and BOD.' }
             ],
             ctaTitle: 'Join the Glorious Family',
-            ctaDesc: 'Whether you\'re an ex-NYSC band member or a passionate supporter, there\'s a place for you at GTMB.'
+            ctaDesc: 'Whether you\'re an ex-NYSC band member or a passionate supporter, there\'s a place for you at GTMB.',
+            anthem: `With every beat, our hearts unite as one.
+Discipline guides us, day and night.
+We create a symphony divine.
+(×2)
+
+Glorious Tunes
+Beautiful Sound
+
+We move as one in perfect harmony and sync`
         },
         history: {
             heroTitle: 'Know Your History',
@@ -327,7 +336,8 @@ export const DEFAULT_DATA = {
         ags: [],
         brass: [],
         bass: [],
-        tenor: []
+        tenor: [],
+        inaugural: []
     },
     settings: {
         password: 'admin123'
