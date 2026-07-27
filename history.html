@@ -6,7 +6,7 @@
     <title>Know Your History | Glorious Tunes Musical Band</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
     <style>
-        /* ===== RESET & BASE (same as others) ===== */
+        /* ===== RESET & BASE ===== */
         *,
         *::before,
         *::after {
@@ -126,11 +126,6 @@
             opacity: 0.85;
         }
 
-        /* Hide old text-based logo */
-        .logo-text {
-            display: none;
-        }
-
         .nav {
             display: flex;
             align-items: center;
@@ -155,20 +150,6 @@
 
         .nav a.active {
             color: var(--color-accent);
-        }
-
-        .nav a.cta-nav {
-            background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
-            color: var(--color-white);
-            font-weight: 600;
-            padding: 8px 20px;
-            border-radius: 6px;
-        }
-
-        .nav a.cta-nav:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-accent);
-            background: linear-gradient(135deg, #388e3c, #1b5e20);
         }
 
         .hamburger {
@@ -292,65 +273,6 @@
             font-size: 1.05rem;
         }
 
-        /* ===== TABS ===== */
-        .tabs-container {
-            margin-top: 32px;
-        }
-
-        .tabs-nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            margin-bottom: 32px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            padding-bottom: 16px;
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: none;
-            padding: 10px 22px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--color-text-muted);
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: "Inter", sans-serif;
-        }
-
-        .tab-btn:hover {
-            color: var(--color-white);
-            background: rgba(46, 125, 50, 0.08);
-        }
-
-        .tab-btn.active {
-            color: var(--color-accent);
-            background: rgba(46, 125, 50, 0.12);
-            box-shadow: inset 0 -2px 0 var(--color-accent);
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         /* ===== INAUGURAL CARD ===== */
         .inaugural-card {
             background: linear-gradient(145deg, rgba(26, 61, 42, 0.6), rgba(15, 42, 26, 0.8));
@@ -456,6 +378,66 @@
             white-space: nowrap;
             font-weight: 500;
         }
+
+        /* ===== TABS ===== */
+        .tabs-container {
+            margin-top: 16px;
+        }
+
+        .tabs-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 16px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: "Inter", sans-serif;
+        }
+
+        .tab-btn:hover {
+            color: var(--color-white);
+            background: rgba(46, 125, 50, 0.08);
+        }
+
+        .tab-btn.active {
+            color: var(--color-accent);
+            background: rgba(46, 125, 50, 0.12);
+            box-shadow: inset 0 -2px 0 var(--color-accent);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .executive-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -500,84 +482,18 @@
             margin-right: 4px;
         }
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            .nav {
-                position: fixed;
-                top: 72px;
-                left: 0;
-                right: 0;
-                background: rgba(15, 42, 26, 0.98);
-                backdrop-filter: blur(14px);
-                flex-direction: column;
-                padding: 24px;
-                gap: 4px;
-                border-bottom: 1px solid rgba(46, 125, 50, 0.1);
-                transform: translateY(-120%);
-                transition: var(--transition);
-                opacity: 0;
-                pointer-events: none;
-            }
-
-            .nav.open {
-                transform: translateY(0);
-                opacity: 1;
-                pointer-events: auto;
-            }
-
-            .nav a {
-                width: 100%;
-                text-align: center;
-                padding: 12px;
-            }
-
-            .hamburger {
-                display: flex;
-            }
-
-            .page-hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .section-header h2 {
-                font-size: 2rem;
-            }
-
-            .section {
-                padding: 56px 0;
-            }
-
-            .tabs-nav {
-                gap: 4px;
-            }
-
-            .tab-btn {
-                padding: 8px 14px;
-                font-size: 0.8rem;
-            }
-
-            .executive-list {
-                grid-template-columns: 1fr;
-                padding: 16px;
-            }
-
-            .logo img {
-                height: 34px;
-            }
+        .other-section-title {
+            font-family: "Playfair Display", serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--color-white);
+            margin-bottom: 8px;
         }
 
-        @media (max-width: 480px) {
-            .page-hero h1 {
-                font-size: 2rem;
-            }
-
-            .page-hero p {
-                font-size: 1rem;
-            }
-
-            .logo img {
-                height: 28px;
-            }
+        .other-section-sub {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 32px;
         }
 
         /* ===== FOOTER ===== */
@@ -634,6 +550,25 @@
             color: var(--color-accent);
         }
 
+        .footer .footer-contact {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer .footer-contact a {
+            color: var(--color-accent);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .footer .footer-contact a:hover {
+            color: var(--color-accent-light);
+            text-decoration: underline;
+        }
+
         .footer .footer-copy {
             color: var(--color-text-muted);
             font-size: 0.8rem;
@@ -642,6 +577,124 @@
             margin-top: 16px;
             padding-top: 16px;
             border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .nav {
+                position: fixed;
+                top: 72px;
+                left: 0;
+                right: 0;
+                background: rgba(15, 42, 26, 0.98);
+                backdrop-filter: blur(14px);
+                flex-direction: column;
+                padding: 24px;
+                gap: 4px;
+                border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+                transform: translateY(-120%);
+                transition: var(--transition);
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .nav.open {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .nav a {
+                width: 100%;
+                text-align: center;
+                padding: 12px;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .page-hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .section {
+                padding: 56px 0;
+            }
+
+            .inaugural-card {
+                padding: 28px 20px;
+            }
+
+            .inaugural-card .card-header h3 {
+                font-size: 1.4rem;
+            }
+
+            .inaugural-card .card-header .badge {
+                margin-left: 0;
+                width: 100%;
+                text-align: center;
+            }
+
+            .inaugural-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .inaugural-item {
+                flex-wrap: wrap;
+                gap: 2px 6px;
+            }
+
+            .inaugural-item .role {
+                min-width: 100px;
+                font-size: 0.8rem;
+            }
+
+            .inaugural-item .batch {
+                margin-left: 0;
+            }
+
+            .tabs-nav {
+                gap: 4px;
+            }
+
+            .tab-btn {
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+
+            .executive-list {
+                grid-template-columns: 1fr;
+                padding: 16px;
+            }
+
+            .logo img {
+                height: 34px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-hero h1 {
+                font-size: 2rem;
+            }
+            .page-hero p {
+                font-size: 1rem;
+            }
+            .logo img {
+                height: 28px;
+            }
+            .inaugural-card .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .inaugural-card .card-header .badge {
+                align-self: flex-start;
+            }
         }
     </style>
 </head>
@@ -687,19 +740,19 @@
     <section class="section">
         <div class="container">
             <div class="section-header">
-                <span class="label">Past Executives</span>
+                <span class="label">Our Legacy</span>
                 <h2>Leaders Who Shaped <span class="accent-text">GTMB</span></h2>
-                <p>From Presidents to Chief Tenors — every role has contributed to our musical journey.</p>
+                <p>From the founding executives to every role that followed — each leader has left a lasting note in our journey.</p>
             </div>
 
-            <div class="inaugural-card" id="inauguralCard">
+            <!-- ===== INAUGURAL EXECUTIVES CARD (Hardcoded) ===== -->
+            <div class="inaugural-card">
                 <div class="card-header">
                     <span class="star">🌟</span>
                     <h3>GTMB <span>Inaugural</span> Executives</h3>
                     <span class="badge">Foundation Team</span>
                 </div>
-                <div class="inaugural-grid" id="inauguralList">
-                    <!-- Hardcoded list from user -->
+                <div class="inaugural-grid">
                     <div class="inaugural-item"><span class="role">President</span><span class="name">Emmanuel Andrew</span><span class="batch">21A</span></div>
                     <div class="inaugural-item"><span class="role">Vice President (Admin)</span><span class="name">Ojebode Funmilayo Bimpe</span><span class="batch">17B</span></div>
                     <div class="inaugural-item"><span class="role">Vice President (Special Duties)</span><span class="name">Okewuyi Chris</span><span class="batch">22A</span></div>
@@ -713,345 +766,352 @@
                     <div class="inaugural-item"><span class="role">Treasurer</span><span class="name">Mariam Busayo</span><span class="batch">17B</span></div>
                     <div class="inaugural-item"><span class="role">Financial Secretary</span><span class="name">Onasanya Favor</span><span class="batch">23C</span></div>
                 </div>
-            <div class="tabs-container">
-                <!-- Tab navigation -->
-                <div class="tabs-nav" id="tabsNav">
-                    <button class="tab-btn active" data-tab="president">President</button>
-                    <button class="tab-btn" data-tab="major">Major</button>
-                    <button class="tab-btn" data-tab="provost">Provost</button>
-                    <button class="tab-btn" data-tab="pro">P.R.O.</button>
-                    <button class="tab-btn" data-tab="dos">D.O.S.</button>
-                    <button class="tab-btn" data-tab="gs">Gen. Secretary</button>
-                    <button class="tab-btn" data-tab="ags">A.G.S.</button>
-                    <button class="tab-btn" data-tab="brass">Chief Brass</button>
-                    <button class="tab-btn" data-tab="bass">Chief Bass</button>
-                    <button class="tab-btn" data-tab="tenor">Chief Tenor</button>
-                </div>
+            </div>
 
-                <!-- Tab content -->
-                <div id="tabContent">
-                    <!-- PRESIDENT -->
-                    <div class="tab-content active" id="tab-president">
-                        <div class="executive-list">
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Mayowa</span><span class="batch">15A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Gbenga</span><span class="batch">15B</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Lawal Moses</span><span class="batch">16A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Segun Michael</span><span class="batch">16B</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Emmanuel</span><span class="batch">17A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Mayowa</span><span class="batch">17B</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">John</span><span class="batch">18A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Okon</span><span class="batch">18C</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Mayokun</span><span class="batch">19A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Ayo</span><span class="batch">19B</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">David</span><span class="batch">19C</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Babatunde</span><span class="batch">20A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Michael</span><span class="batch">20B</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Victor</span><span class="batch">21A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Sunday</span><span class="batch">21B</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Daniel</span><span class="batch">21C</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Gabriel</span><span class="batch">22A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Emmanuel</span><span class="batch">22B</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Alexander</span><span class="batch">22C</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Mike</span><span class="batch">23A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Iba Jeremiah</span><span class="batch">23B</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Pelumi</span><span class="batch">23C</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Abasifreke</span><span class="batch">24A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Oreoluwa</span><span class="batch">24B</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Blessing</span><span class="batch">24C</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Victor</span><span class="batch">25A</span></div>
-                            <div class="executive-item"><span class="role-icon">✅</span><span class="name">Oluwaferanmi</span><span class="batch">25B</span></div>
-                        </div>
+            <!-- ===== OTHER EXECUTIVES (Hardcoded, grouped by role) ===== -->
+            <div id="otherExecutives">
+                <h3 class="other-section-title">Other <span class="accent-text">Executives</span></h3>
+                <p class="other-section-sub">Leaders who have served in various roles across the years.</p>
+
+                <div class="tabs-container">
+                    <!-- Tab Navigation -->
+                    <div class="tabs-nav" id="tabsNav">
+                        <button class="tab-btn active" data-tab="president">President</button>
+                        <button class="tab-btn" data-tab="major">Major</button>
+                        <button class="tab-btn" data-tab="provost">Provost</button>
+                        <button class="tab-btn" data-tab="pro">P.R.O.</button>
+                        <button class="tab-btn" data-tab="dos">D.O.S.</button>
+                        <button class="tab-btn" data-tab="gs">Gen. Secretary</button>
+                        <button class="tab-btn" data-tab="ags">A.G.S.</button>
+                        <button class="tab-btn" data-tab="brass">Chief Brass</button>
+                        <button class="tab-btn" data-tab="bass">Chief Bass</button>
+                        <button class="tab-btn" data-tab="tenor">Chief Tenor</button>
                     </div>
 
-                    <!-- MAJOR -->
-                    <div class="tab-content" id="tab-major">
-                        <div class="executive-list">
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Stanley</span><span class="batch">12B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Victor</span><span class="batch">12C</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Maximus</span><span class="batch">13A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Nonso</span><span class="batch">13C</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Deji</span><span class="batch">14A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Solomon</span><span class="batch">14B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Akin</span><span class="batch">14C</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Femi Atolagbe</span><span class="batch">15A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Henry</span><span class="batch">15B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Victor</span><span class="batch">16A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Femi Horfem</span><span class="batch">16B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Seun</span><span class="batch">17A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Tosin Famtos</span><span class="batch">17B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Olu</span><span class="batch">18A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Damilola</span><span class="batch">18B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Daniel</span><span class="batch">18C</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Micheal</span><span class="batch">19A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Paul</span><span class="batch">19B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Samuel</span><span class="batch">19C</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Promise</span><span class="batch">20A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Joseph Taiye</span><span class="batch">20B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Emmanuel</span><span class="batch">21A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Jeff</span><span class="batch">21B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Poka</span><span class="batch">21C</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Oni</span><span class="batch">22A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Mark</span><span class="batch">22B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Tobi</span><span class="batch">22C</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Uzor</span><span class="batch">23A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Stephen</span><span class="batch">23B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Nathaniel</span><span class="batch">23C</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Edwin</span><span class="batch">24A</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major PrinceHart</span><span class="batch">24B</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Kelvin</span><span class="batch">24C</span></div>
-                            <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Ayomide</span><span class="batch">25A</span></div>
+                    <!-- Tab Content -->
+                    <div id="tabContent">
+                        <!-- PRESIDENT -->
+                        <div class="tab-content active" id="tab-president">
+                            <div class="executive-list">
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Mayowa</span><span class="batch">15A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Gbenga</span><span class="batch">15B</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Lawal Moses</span><span class="batch">16A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Segun Michael</span><span class="batch">16B</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Emmanuel</span><span class="batch">17A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Mayowa</span><span class="batch">17B</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">John</span><span class="batch">18A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Okon</span><span class="batch">18C</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Mayokun</span><span class="batch">19A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Ayo</span><span class="batch">19B</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">David</span><span class="batch">19C</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Babatunde</span><span class="batch">20A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Michael</span><span class="batch">20B</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Victor</span><span class="batch">21A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Sunday</span><span class="batch">21B</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Daniel</span><span class="batch">21C</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Gabriel</span><span class="batch">22A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Emmanuel</span><span class="batch">22B</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Alexander</span><span class="batch">22C</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Mike</span><span class="batch">23A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Iba Jeremiah</span><span class="batch">23B</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Pelumi</span><span class="batch">23C</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Abasifreke</span><span class="batch">24A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Oreoluwa</span><span class="batch">24B</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Blessing</span><span class="batch">24C</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Victor</span><span class="batch">25A</span></div>
+                                <div class="executive-item"><span class="role-icon">✅</span><span class="name">Oluwaferanmi</span><span class="batch">25B</span></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- PROVOST -->
-                    <div class="tab-content" id="tab-provost">
-                        <div class="executive-list">
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Ubong</span><span class="batch">16A</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Omolola</span><span class="batch">16B</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Henry</span><span class="batch">17A</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Taiwo</span><span class="batch">17B</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Miracle</span><span class="batch">18A</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Emmanuel</span><span class="batch">18C</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Ubong</span><span class="batch">19A</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Emmanuel</span><span class="batch">19B</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Solomon</span><span class="batch">19C</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Clinton</span><span class="batch">20A</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Chris</span><span class="batch">20B</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Vines</span><span class="batch">21A</span></div>
-                            <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Jerry</span><span class="batch">21B</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">Francis</span><span class="batch">21C</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">Chris</span><span class="batch">22A</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">Emmanuel</span><span class="batch">22B</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">Busuyi</span><span class="batch">22C</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">(23A)</span><span class="batch">23A</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">Samuel</span><span class="batch">23B</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">James</span><span class="batch">23C</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">Christian Obiajulu</span><span class="batch">24A</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">Engr. Toaster</span><span class="batch">24B</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">David</span><span class="batch">24C</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">Ayobami</span><span class="batch">25A</span></div>
-                            <div class="executive-item"><span class="role-icon">👨🏽‍✈️</span><span class="name">Theophilus</span><span class="batch">25B</span></div>
+                        <!-- MAJOR -->
+                        <div class="tab-content" id="tab-major">
+                            <div class="executive-list">
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Stanley</span><span class="batch">12B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Victor</span><span class="batch">12C</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Maximus</span><span class="batch">13A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Nonso</span><span class="batch">13C</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Deji</span><span class="batch">14A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Solomon</span><span class="batch">14B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Akin</span><span class="batch">14C</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Femi Atolagbe</span><span class="batch">15A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Henry</span><span class="batch">15B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Victor</span><span class="batch">16A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Femi Horfem</span><span class="batch">16B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Seun</span><span class="batch">17A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Tosin Famtos</span><span class="batch">17B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Olu</span><span class="batch">18A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Damilola</span><span class="batch">18B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Daniel</span><span class="batch">18C</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Micheal</span><span class="batch">19A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Paul</span><span class="batch">19B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Samuel</span><span class="batch">19C</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Promise</span><span class="batch">20A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Joseph Taiye</span><span class="batch">20B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Emmanuel</span><span class="batch">21A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Jeff</span><span class="batch">21B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Poka</span><span class="batch">21C</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Oni</span><span class="batch">22A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Mark</span><span class="batch">22B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Tobi</span><span class="batch">22C</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Uzor</span><span class="batch">23A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Stephen</span><span class="batch">23B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Nathaniel</span><span class="batch">23C</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Edwin</span><span class="batch">24A</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major PrinceHart</span><span class="batch">24B</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Kelvin</span><span class="batch">24C</span></div>
+                                <div class="executive-item"><span class="role-icon">🥁</span><span class="name">Major Ayomide</span><span class="batch">25A</span></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- P.R.O. -->
-                    <div class="tab-content" id="tab-pro">
-                        <div class="executive-list">
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Juwon 1, Ayobami 2</span><span class="batch">16B</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Samuel 1, Opeoluwa 2</span><span class="batch">17A</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Chidera 1, Emmanuel 2</span><span class="batch">17B</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Taiwo 1, Tosin 2</span><span class="batch">18A/B</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Ovie 1</span><span class="batch">18C</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Tracy 1, Solomon 2</span><span class="batch">19A</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Sharon</span><span class="batch">19B</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Promise 1, Emmanuel 2</span><span class="batch">19C</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Gideon 1, Grace 2</span><span class="batch">20A</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Igwe Joel 1, Caleb 2</span><span class="batch">20B</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Timothy 1, Adesewa 2</span><span class="batch">21A</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Abel 1, George 2</span><span class="batch">21B</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Wisdom</span><span class="batch">21C</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Victor</span><span class="batch">22A</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Eden</span><span class="batch">22B</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Deborah 1, Adura 2</span><span class="batch">22C</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">(23A)</span><span class="batch">23A</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">(23B)</span><span class="batch">23B</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">(23C)</span><span class="batch">23C</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Kelvin 1, Tife 2</span><span class="batch">24A</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Brume 1, Steven 2</span><span class="batch">24B</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">Chuks 1, Dunsin 2</span><span class="batch">24C</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">(25A)</span><span class="batch">25A</span></div>
-                            <div class="executive-item"><span class="role-icon">📢</span><span class="name">(25B)</span><span class="batch">25B</span></div>
+                        <!-- PROVOST -->
+                        <div class="tab-content" id="tab-provost">
+                            <div class="executive-list">
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Ubong</span><span class="batch">16A</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Omolola</span><span class="batch">16B</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Henry</span><span class="batch">17A</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Taiwo</span><span class="batch">17B</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Miracle</span><span class="batch">18A</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Emmanuel</span><span class="batch">18C</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Ubong</span><span class="batch">19A</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Emmanuel</span><span class="batch">19B</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Solomon</span><span class="batch">19C</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Clinton</span><span class="batch">20A</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Chris</span><span class="batch">20B</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Vines</span><span class="batch">21A</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Jerry</span><span class="batch">21B</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Francis</span><span class="batch">21C</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Chris</span><span class="batch">22A</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Emmanuel</span><span class="batch">22B</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Busuyi</span><span class="batch">22C</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">(23A)</span><span class="batch">23A</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Samuel</span><span class="batch">23B</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">James</span><span class="batch">23C</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Christian Obiajulu</span><span class="batch">24A</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Engr. Toaster</span><span class="batch">24B</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">David</span><span class="batch">24C</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Ayobami</span><span class="batch">25A</span></div>
+                                <div class="executive-item"><span class="role-icon">🧑🏾‍✈️</span><span class="name">Theophilus</span><span class="batch">25B</span></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- D.O.S. -->
-                    <div class="tab-content" id="tab-dos">
-                        <div class="executive-list">
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Ifective (Gbewa Master)</span><span class="batch">15A</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Debo (Skibo Crooner)</span><span class="batch">15B</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Wisdom</span><span class="batch">16A</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Olaoluwa</span><span class="batch">16B</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Zino (NSG)</span><span class="batch">17A</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Adedotun</span><span class="batch">17B</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Damilola</span><span class="batch">18A/B</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Kenny</span><span class="batch">18C</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Tracy</span><span class="batch">19A</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Feyi</span><span class="batch">19B</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Anita</span><span class="batch">19C</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Favor</span><span class="batch">20A</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Gift</span><span class="batch">20B</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Shola</span><span class="batch">21A</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">George</span><span class="batch">21B</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Zikosax</span><span class="batch">21C</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Charles</span><span class="batch">22A</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">James</span><span class="batch">22B</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Oyin</span><span class="batch">22C</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">(23A)</span><span class="batch">23A</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Sammy</span><span class="batch">23B</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Honourable</span><span class="batch">23C</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Michael</span><span class="batch">24A</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Pharoah</span><span class="batch">24B</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Emmanuel</span><span class="batch">24C</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Sophia</span><span class="batch">25A</span></div>
-                            <div class="executive-item"><span class="role-icon">📸</span><span class="name">Precious</span><span class="batch">25B</span></div>
+                        <!-- P.R.O. -->
+                        <div class="tab-content" id="tab-pro">
+                            <div class="executive-list">
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Juwon 1, Ayobami 2</span><span class="batch">16B</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Samuel 1, Opeoluwa 2</span><span class="batch">17A</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Chidera 1, Emmanuel 2</span><span class="batch">17B</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Taiwo 1, Tosin 2</span><span class="batch">18A/B</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Ovie 1</span><span class="batch">18C</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Tracy 1, Solomon 2</span><span class="batch">19A</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Sharon</span><span class="batch">19B</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Promise 1, Emmanuel 2</span><span class="batch">19C</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Gideon 1, Grace 2</span><span class="batch">20A</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Igwe Joel 1, Caleb 2</span><span class="batch">20B</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Timothy 1, Adesewa 2</span><span class="batch">21A</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Abel 1, George 2</span><span class="batch">21B</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Wisdom</span><span class="batch">21C</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Victor</span><span class="batch">22A</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Eden</span><span class="batch">22B</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Deborah 1, Adura 2</span><span class="batch">22C</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">(23A)</span><span class="batch">23A</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">(23B)</span><span class="batch">23B</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">(23C)</span><span class="batch">23C</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Kelvin 1, Tife 2</span><span class="batch">24A</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Brume 1, Steven 2</span><span class="batch">24B</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">Chuks 1, Dunsin 2</span><span class="batch">24C</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">(25A)</span><span class="batch">25A</span></div>
+                                <div class="executive-item"><span class="role-icon">📢</span><span class="name">(25B)</span><span class="batch">25B</span></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- GENERAL SECRETARY -->
-                    <div class="tab-content" id="tab-gs">
-                        <div class="executive-list">
-                            <div class="executive-item"><span class="role-icon">✍🏼</span><span class="name">Teewhy</span><span class="batch">16A</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Mayowa</span><span class="batch">16B</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Olumide</span><span class="batch">17A</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">David</span><span class="batch">17B</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">David</span><span class="batch">18A/B</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Emmanuel</span><span class="batch">18C</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Williams</span><span class="batch">19A</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">David</span><span class="batch">19C</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Samuel</span><span class="batch">20A</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Miracle</span><span class="batch">20B</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Favour</span><span class="batch">21A</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Willings</span><span class="batch">21B</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Testimony</span><span class="batch">21C</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Japhet</span><span class="batch">22A</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Segun</span><span class="batch">22B</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Titilayo</span><span class="batch">22C</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">PapaT</span><span class="batch">23A</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Ire</span><span class="batch">23B</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Peace</span><span class="batch">23C</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">George</span><span class="batch">24A</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Enoch</span><span class="batch">24B</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Eric</span><span class="batch">24C</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Freddy</span><span class="batch">25A</span></div>
-                            <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Charles</span><span class="batch">25B</span></div>
+                        <!-- D.O.S. -->
+                        <div class="tab-content" id="tab-dos">
+                            <div class="executive-list">
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Ifective (Gbewa Master)</span><span class="batch">15A</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Debo (Skibo Crooner)</span><span class="batch">15B</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Wisdom</span><span class="batch">16A</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Olaoluwa</span><span class="batch">16B</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Zino (NSG)</span><span class="batch">17A</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Adedotun</span><span class="batch">17B</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Damilola</span><span class="batch">18A/B</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Kenny</span><span class="batch">18C</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Tracy</span><span class="batch">19A</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Feyi</span><span class="batch">19B</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Anita</span><span class="batch">19C</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Favor</span><span class="batch">20A</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Gift</span><span class="batch">20B</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Shola</span><span class="batch">21A</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">George</span><span class="batch">21B</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Zikosax</span><span class="batch">21C</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Charles</span><span class="batch">22A</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">James</span><span class="batch">22B</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Oyin</span><span class="batch">22C</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">(23A)</span><span class="batch">23A</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Sammy</span><span class="batch">23B</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Honourable</span><span class="batch">23C</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Michael</span><span class="batch">24A</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Pharoah</span><span class="batch">24B</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Emmanuel</span><span class="batch">24C</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Sophia</span><span class="batch">25A</span></div>
+                                <div class="executive-item"><span class="role-icon">📸</span><span class="name">Precious</span><span class="batch">25B</span></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- A.G.S. -->
-                    <div class="tab-content" id="tab-ags">
-                        <div class="executive-list">
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Gbemi</span><span class="batch">16B</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Adejoke</span><span class="batch">17A</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Blessing</span><span class="batch">17B</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Titilayomi</span><span class="batch">18A/B</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Stephen</span><span class="batch">18C</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Joshua</span><span class="batch">19A</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Emmanuel</span><span class="batch">19B</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Mayowa</span><span class="batch">19C</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">(20A)</span><span class="batch">20A</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Modestus</span><span class="batch">20B</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Samuel</span><span class="batch">21A</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Willings</span><span class="batch">21B</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Michael</span><span class="batch">21C</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">David prince</span><span class="batch">22A</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Sunday</span><span class="batch">22B</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">(22C)</span><span class="batch">22C</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">(23A)</span><span class="batch">23A</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">(23B)</span><span class="batch">23B</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Tomide</span><span class="batch">23C</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Wisdom</span><span class="batch">24A</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">AY</span><span class="batch">24B</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">Erioluwa</span><span class="batch">24C</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">(25A)</span><span class="batch">25A</span></div>
-                            <div class="executive-item"><span class="role-icon">📝</span><span class="name">(25B)</span><span class="batch">25B</span></div>
+                        <!-- GENERAL SECRETARY -->
+                        <div class="tab-content" id="tab-gs">
+                            <div class="executive-list">
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Teewhy</span><span class="batch">16A</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Mayowa</span><span class="batch">16B</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Olumide</span><span class="batch">17A</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">David</span><span class="batch">17B</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">David</span><span class="batch">18A/B</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Emmanuel</span><span class="batch">18C</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Williams</span><span class="batch">19A</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">David</span><span class="batch">19C</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Samuel</span><span class="batch">20A</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Miracle</span><span class="batch">20B</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Favour</span><span class="batch">21A</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Willings</span><span class="batch">21B</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Testimony</span><span class="batch">21C</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Japhet</span><span class="batch">22A</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Segun</span><span class="batch">22B</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Titilayo</span><span class="batch">22C</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">PapaT</span><span class="batch">23A</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Ire</span><span class="batch">23B</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Peace</span><span class="batch">23C</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">George</span><span class="batch">24A</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Enoch</span><span class="batch">24B</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Eric</span><span class="batch">24C</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Freddy</span><span class="batch">25A</span></div>
+                                <div class="executive-item"><span class="role-icon">✍🏽</span><span class="name">Charles</span><span class="batch">25B</span></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- CHIEF BRASS -->
-                    <div class="tab-content" id="tab-brass">
-                        <div class="executive-list">
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Lawal Moses</span><span class="batch">16A</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Olaoluwa</span><span class="batch">16B</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Emmanuel</span><span class="batch">17A</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Mayowa</span><span class="batch">17B</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">John</span><span class="batch">18A/18B</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Stephen</span><span class="batch">18C</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Joshua</span><span class="batch">19A</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Emmanuel</span><span class="batch">19B</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Emmanuel</span><span class="batch">19C</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Gideon</span><span class="batch">20A</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Modestus</span><span class="batch">20B</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Samuel</span><span class="batch">21A</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Abel</span><span class="batch">21B</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Uty Bassy</span><span class="batch">21C</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Victor</span><span class="batch">22A</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Oyindamola</span><span class="batch">22B</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Tolu</span><span class="batch">22C</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Hector</span><span class="batch">23A</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Pelumi</span><span class="batch">23B</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Stanberg</span><span class="batch">23C</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Jerry</span><span class="batch">24A</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Maxwell</span><span class="batch">24B</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Saeseyi</span><span class="batch">24C</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Timothy</span><span class="batch">25A</span></div>
-                            <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Stephen</span><span class="batch">25B</span></div>
+                        <!-- A.G.S. -->
+                        <div class="tab-content" id="tab-ags">
+                            <div class="executive-list">
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Gbemi</span><span class="batch">16B</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Adejoke</span><span class="batch">17A</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Blessing</span><span class="batch">17B</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Titilayomi</span><span class="batch">18A/B</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Stephen</span><span class="batch">18C</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Joshua</span><span class="batch">19A</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Emmanuel</span><span class="batch">19B</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Mayowa</span><span class="batch">19C</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">(20A)</span><span class="batch">20A</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Modestus</span><span class="batch">20B</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Samuel</span><span class="batch">21A</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Willings</span><span class="batch">21B</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Michael</span><span class="batch">21C</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">David prince</span><span class="batch">22A</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Sunday</span><span class="batch">22B</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">(22C)</span><span class="batch">22C</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">(23A)</span><span class="batch">23A</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">(23B)</span><span class="batch">23B</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Tomide</span><span class="batch">23C</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Wisdom</span><span class="batch">24A</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">AY</span><span class="batch">24B</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">Erioluwa</span><span class="batch">24C</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">(25A)</span><span class="batch">25A</span></div>
+                                <div class="executive-item"><span class="role-icon">📝</span><span class="name">(25B)</span><span class="batch">25B</span></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- CHIEF BASS -->
-                    <div class="tab-content" id="tab-bass">
-                        <div class="executive-list">
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Divine</span><span class="batch">16A</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Ngozi</span><span class="batch">16B</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Adejoke</span><span class="batch">17A</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Blessing</span><span class="batch">17B</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Titilayomi</span><span class="batch">18A/18B</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Hannah</span><span class="batch">18C</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Solomon</span><span class="batch">19A</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Jeremiah</span><span class="batch">19B</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Emmanuel</span><span class="batch">19C</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Kuje</span><span class="batch">20A</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Joy</span><span class="batch">20B</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Joshua</span><span class="batch">21A</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Treasure</span><span class="batch">21B</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Gabriel Sunshine</span><span class="batch">21C</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Amaka</span><span class="batch">22A</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Rafiki</span><span class="batch">22B</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Deborah</span><span class="batch">22C</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Richard</span><span class="batch">23A</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Dorcas</span><span class="batch">23B</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Pretty</span><span class="batch">23C</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Mide</span><span class="batch">24A</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Brume</span><span class="batch">24B</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Erioluwa</span><span class="batch">24C</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Rose</span><span class="batch">25A</span></div>
-                            <div class="executive-item"><span class="role-icon">💣</span><span class="name">Emmanuel</span><span class="batch">25B</span></div>
+                        <!-- CHIEF BRASS -->
+                        <div class="tab-content" id="tab-brass">
+                            <div class="executive-list">
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Lawal Moses</span><span class="batch">16A</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Olaoluwa</span><span class="batch">16B</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Emmanuel</span><span class="batch">17A</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Mayowa</span><span class="batch">17B</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">John</span><span class="batch">18A/18B</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Stephen</span><span class="batch">18C</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Joshua</span><span class="batch">19A</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Emmanuel</span><span class="batch">19B</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Emmanuel</span><span class="batch">19C</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Gideon</span><span class="batch">20A</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Modestus</span><span class="batch">20B</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Samuel</span><span class="batch">21A</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Abel</span><span class="batch">21B</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Uty Bassy</span><span class="batch">21C</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Victor</span><span class="batch">22A</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Oyindamola</span><span class="batch">22B</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Tolu</span><span class="batch">22C</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Hector</span><span class="batch">23A</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Pelumi</span><span class="batch">23B</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Stanberg</span><span class="batch">23C</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Jerry</span><span class="batch">24A</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Maxwell</span><span class="batch">24B</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Saeseyi</span><span class="batch">24C</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Timothy</span><span class="batch">25A</span></div>
+                                <div class="executive-item"><span class="role-icon">🎺</span><span class="name">Stephen</span><span class="batch">25B</span></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- CHIEF TENOR -->
-                    <div class="tab-content" id="tab-tenor">
-                        <div class="executive-list">
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Ubong</span><span class="batch">16A</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Omolola</span><span class="batch">16B</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Henry</span><span class="batch">17A</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Chidera</span><span class="batch">17B</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Tosin</span><span class="batch">18A/18B</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Ovie</span><span class="batch">18C</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Tracy</span><span class="batch">19A</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">West</span><span class="batch">19B</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Promise</span><span class="batch">19C</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Amarachi</span><span class="batch">20A</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Igwe Joel</span><span class="batch">20B</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Patrick</span><span class="batch">21A</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Joshua</span><span class="batch">21B</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Michael AY</span><span class="batch">21C</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">DavidPrince</span><span class="batch">22A</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Finian</span><span class="batch">22B</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Jomiloju</span><span class="batch">22C</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Chigozie</span><span class="batch">23A</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Ayanfe Royal</span><span class="batch">23B</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Tomide</span><span class="batch">23C</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Kelvin</span><span class="batch">24A</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Steven Luka</span><span class="batch">24B</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Dunsin</span><span class="batch">24C</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Johnarcher</span><span class="batch">25A</span></div>
-                            <div class="executive-item"><span class="role-icon">💯</span><span class="name">Emmanuel</span><span class="batch">25B</span></div>
+                        <!-- CHIEF BASS -->
+                        <div class="tab-content" id="tab-bass">
+                            <div class="executive-list">
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Divine</span><span class="batch">16A</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Ngozi</span><span class="batch">16B</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Adejoke</span><span class="batch">17A</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Blessing</span><span class="batch">17B</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Titilayomi</span><span class="batch">18A/18B</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Hannah</span><span class="batch">18C</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Solomon</span><span class="batch">19A</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Jeremiah</span><span class="batch">19B</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Emmanuel</span><span class="batch">19C</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Kuje</span><span class="batch">20A</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Joy</span><span class="batch">20B</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Joshua</span><span class="batch">21A</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Treasure</span><span class="batch">21B</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Gabriel Sunshine</span><span class="batch">21C</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Amaka</span><span class="batch">22A</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Rafiki</span><span class="batch">22B</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Deborah</span><span class="batch">22C</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Richard</span><span class="batch">23A</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Dorcas</span><span class="batch">23B</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Pretty</span><span class="batch">23C</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Mide</span><span class="batch">24A</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Brume</span><span class="batch">24B</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Erioluwa</span><span class="batch">24C</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Rose</span><span class="batch">25A</span></div>
+                                <div class="executive-item"><span class="role-icon">💣</span><span class="name">Emmanuel</span><span class="batch">25B</span></div>
+                            </div>
                         </div>
-                    </div>
 
-                </div><!-- end tabContent -->
-            </div><!-- end tabs-container -->
+                        <!-- CHIEF TENOR -->
+                        <div class="tab-content" id="tab-tenor">
+                            <div class="executive-list">
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Ubong</span><span class="batch">16A</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Omolola</span><span class="batch">16B</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Henry</span><span class="batch">17A</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Chidera</span><span class="batch">17B</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Tosin</span><span class="batch">18A/18B</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Ovie</span><span class="batch">18C</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Tracy</span><span class="batch">19A</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">West</span><span class="batch">19B</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Promise</span><span class="batch">19C</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Amarachi</span><span class="batch">20A</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Igwe Joel</span><span class="batch">20B</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Patrick</span><span class="batch">21A</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Joshua</span><span class="batch">21B</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Michael AY</span><span class="batch">21C</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">DavidPrince</span><span class="batch">22A</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Finian</span><span class="batch">22B</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Jomiloju</span><span class="batch">22C</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Chigozie</span><span class="batch">23A</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Ayanfe Royal</span><span class="batch">23B</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Tomide</span><span class="batch">23C</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Kelvin</span><span class="batch">24A</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Steven Luka</span><span class="batch">24B</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Dunsin</span><span class="batch">24C</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Johnarcher</span><span class="batch">25A</span></div>
+                                <div class="executive-item"><span class="role-icon">💯</span><span class="name">Emmanuel</span><span class="batch">25B</span></div>
+                            </div>
+                        </div>
+                    </div><!-- end tabContent -->
+                </div><!-- end tabs-container -->
+            </div><!-- end otherExecutives -->
         </div>
     </section>
 
@@ -1064,7 +1124,7 @@
             </div>
 
             <div class="footer-links">
-                <a href="#">Home</a>
+                <a href="index.html">Home</a>
                 <a href="about.html">About</a>
                 <a href="history.html">History</a>
                 <a href="events.html">Events</a>
@@ -1072,7 +1132,7 @@
             </div>
 
             <div class="footer-contact">
-                <span class="email-icon">✉️</span>
+                <span>✉️</span>
                 <a href="mailto:glorioustunesmusicalband@gmail.com">glorioustunesmusicalband@gmail.com</a>
             </div>
 
@@ -1084,7 +1144,7 @@
 
     <!-- ===== SCRIPTS ===== -->
     <script>
-        // Hamburger
+        // Hamburger toggle
         const hamburger = document.getElementById('hamburger');
         const nav = document.getElementById('nav');
 
@@ -1100,7 +1160,7 @@
             });
         });
 
-        // Header scroll
+        // Header scroll shadow
         const header = document.getElementById('header');
         window.addEventListener('scroll', () => {
             if (window.pageYOffset > 30) {
@@ -1110,7 +1170,7 @@
             }
         });
 
-        // Tabs
+        // Tab switching logic
         const tabBtns = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
 
@@ -1132,6 +1192,5 @@
             });
         });
     </script>
-
 </body>
 </html>
