@@ -337,11 +337,12 @@
     </style>
 </head>
 <body>
+
     <header class="header" id="header">
         <div class="container">
-            <a href="index.html" class="logo"><img src="logo.png" alt="GTMB" /></a>
+            <a href="#" class="logo"><img src="logo.png" alt="GTMB" /></a>
             <nav class="nav" id="nav">
-                <a href="index.html" class="active">Home</a>
+                <a href="#" class="active">Home</a>
                 <a href="about.html">About</a>
                 <a href="history.html">Know Your History</a>
                 <a href="events.html">Events</a>
@@ -364,7 +365,7 @@
             <div class="hero-visual">
                 <div class="hero-badge">
                     <div class="icon-large">🎵</div>
-                    <div class="badge-title" id="badgeTitle">Since 2016</div>
+                    <div class="badge-title" id="badgeTitle">Since 2017</div>
                     <div class="badge-divider"></div>
                     <ul class="badge-list" id="badgeList">
                         <li>Founded by Ex-NYSC Parade Band Members</li>
@@ -383,7 +384,7 @@
                 <h2>Everything You Need to Know</h2>
                 <p>From our rich history to upcoming events — discover the world of Glorious Tunes.</p>
             </div>
-            <div class="featured-grid" id="featuredGrid"><!-- Dynamic --></div>
+            <div class="featured-grid" id="featuredGrid"></div>
         </div>
     </section>
 
@@ -394,7 +395,7 @@
                 <h2>Built on <span class="accent-text">Unity</span> &amp; Excellence</h2>
                 <p>The GTMB Constitution defines our purpose, leadership, and the values that bind us together.</p>
             </div>
-            <div class="constitution-highlights" id="constitutionHighlights"><!-- Dynamic --></div>
+            <div class="constitution-highlights" id="constitutionHighlights"></div>
         </div>
     </section>
 
@@ -405,7 +406,7 @@
                 <h2>Recognising <span class="accent-text">Exceptional</span> Support</h2>
                 <p>Article 2.4 of our Constitution formally recognises and appreciates individuals who have contributed significantly to GTMB.</p>
             </div>
-            <div class="honorary-grid" id="honoraryGrid"><!-- Dynamic --></div>
+            <div class="honorary-grid" id="honoraryGrid"></div>
         </div>
     </section>
 
@@ -416,7 +417,7 @@
                 <h2>Test Your <span class="accent-text">Knowledge</span></h2>
                 <p>Dive into our collection of past trivia questions and answers.</p>
             </div>
-            <div class="trivia-block" id="triviaBlock"><!-- Dynamic --></div>
+            <div class="trivia-block" id="triviaBlock"></div>
         </div>
     </section>
 
@@ -424,7 +425,7 @@
         <div class="container">
             <div class="footer-brand"><img src="logo.png" alt="GTMB" /><div class="brand-text">GTMB <span>·</span> Glorious Tunes</div></div>
             <div class="footer-links">
-                <a href="index.html">Home</a><a href="about.html">About</a><a href="history.html">History</a><a href="events.html">Events</a><a href="trivia.html">Trivia</a>
+                <a href="#">Home</a><a href="about.html">About</a><a href="history.html">History</a><a href="events.html">Events</a><a href="trivia.html">Trivia</a>
             </div>
             <div class="footer-contact"><span>✉️</span><a href="mailto:glorioustunesmusicalband@gmail.com">glorioustunesmusicalband@gmail.com</a></div>
             <div class="footer-copy">&copy; 2026 Glorious Tunes Musical Band. All rights reserved.</div>
@@ -432,7 +433,7 @@
     </footer>
 
     <script type="module">
-        import { loadPage, escapeHtml } from './script.js';
+        import { loadPage, escapeHtml, sanitizeHtml } from './script.js';
 
         // ---- Hamburger ----
         const hamburger = document.getElementById('hamburger');
@@ -455,34 +456,44 @@
         // ---- Load Home ----
         const home = await loadPage('home');
         if (home) {
+            // Hero Title (already has static span)
             document.getElementById('heroTitle').innerHTML = home.heroTitle.replace(/Glorious/, '<span class="accent-text">Glorious</span>');
-            document.getElementById('heroTagline').textContent = home.heroTagline;
+            // Hero Tagline – allow HTML
+            document.getElementById('heroTagline').innerHTML = sanitizeHtml(home.heroTagline);
             document.getElementById('badgeTitle').textContent = home.heroBadgeTitle;
-            document.getElementById('badgeList').innerHTML = home.heroBadgeItems.map(i => `<li>${escapeHtml(i)}</li>`).join('');
+            document.getElementById('badgeList').innerHTML = home.heroBadgeItems.map(i => `<li>${sanitizeHtml(i)}</li>`).join('');
+
+            // Feature Cards – descriptions can have HTML
             document.getElementById('featuredGrid').innerHTML = home.featureCards.map(c => `
                 <div class="feature-card">
                     <div class="icon">${escapeHtml(c.icon)}</div>
                     <h3>${escapeHtml(c.title)}</h3>
-                    <p>${escapeHtml(c.desc)}</p>
+                    <p>${sanitizeHtml(c.desc)}</p>
                     <a href="${escapeHtml(c.link)}" class="link-arrow">Read more →</a>
                 </div>
             `).join('');
+
+            // Constitution Highlights
             document.getElementById('constitutionHighlights').innerHTML = home.constitutionHighlights.map(t => `
-                <div class="highlight-item"><div class="hl-desc">${escapeHtml(t)}</div></div>
+                <div class="highlight-item"><div class="hl-desc">${sanitizeHtml(t)}</div></div>
             `).join('');
+
+            // Honorary Cards
             document.getElementById('honoraryGrid').innerHTML = home.honoraryCards.map(c => `
                 <div class="honorary-card">
                     <div class="badge-icon">${escapeHtml(c.icon)}</div>
                     <h4>${escapeHtml(c.title)}</h4>
-                    <p>${escapeHtml(c.desc)}</p>
+                    <p>${sanitizeHtml(c.desc)}</p>
                 </div>
             `).join('');
+
+            // Trivia Teaser
             document.getElementById('triviaBlock').innerHTML = `
                 <div class="left">
                     <div class="q-mark">?</div>
                     <div class="trivia-text">
-                        <strong>${escapeHtml(home.triviaTeaser.question)}</strong>
-                        <small>${escapeHtml(home.triviaTeaser.answer)}</small>
+                        <strong>${sanitizeHtml(home.triviaTeaser.question)}</strong>
+                        <small>${sanitizeHtml(home.triviaTeaser.answer)}</small>
                     </div>
                 </div>
                 <a href="trivia.html" class="btn btn-primary">Explore Trivia</a>
