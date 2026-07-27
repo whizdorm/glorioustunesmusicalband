@@ -1,5 +1,5 @@
 // ============================================================
-// GTMB - Firebase Script (Full Data + Auth)
+// GTMB - Firebase Script (Full Data + Auth + HTML Sanitizer)
 // ============================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
@@ -61,6 +61,8 @@ export { app, db, auth };
 // ============================================================
 // UTILITY FUNCTIONS
 // ============================================================
+
+/** Escape HTML to prevent XSS (for plain text) */
 export function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -68,6 +70,55 @@ export function escapeHtml(text) {
     return div.innerHTML;
 }
 
+/** Sanitize HTML – allow only safe tags and attributes (for rich text) */
+export function sanitizeHtml(html) {
+    if (!html) return '';
+    // Allowed tags – extend as needed
+    const allowedTags = [
+        'br', 'strong', 'em', 'u', 'p', 'ul', 'li', 'ol',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'span', 'div', 'a', 'b', 'i', 'u', 'sub', 'sup',
+        'blockquote', 'pre', 'code'
+    ];
+
+    const div = document.createElement('div');
+    div.innerHTML = html;
+
+    function sanitizeNode(node) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            const tag = node.tagName.toLowerCase();
+            if (!allowedTags.includes(tag)) {
+                while (node.firstChild) {
+                    node.parentNode.insertBefore(node.firstChild, node);
+                }
+                node.remove();
+                return;
+            }
+            if (tag === 'a') {
+                const href = node.getAttribute('href');
+                if (href && (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:'))) {
+                    node.setAttribute('href', href);
+                } else {
+                    node.removeAttribute('href');
+                }
+                // Remove all other attributes
+                [...node.attributes].forEach(attr => {
+                    if (attr.name !== 'href') node.removeAttribute(attr.name);
+                });
+            } else {
+                // Remove all attributes for other tags
+                [...node.attributes].forEach(attr => node.removeAttribute(attr.name));
+            }
+            // Recurse into children
+            [...node.childNodes].forEach(child => sanitizeNode(child));
+        }
+    }
+
+    [...div.childNodes].forEach(child => sanitizeNode(child));
+    return div.innerHTML;
+}
+
+/** Toast notification */
 export function showToast(message, isError = false) {
     const toast = document.getElementById('toast');
     if (!toast) {
@@ -264,14 +315,7 @@ export const DEFAULT_DATA = {
         }
     },
     trivia: [
-        { id: 1, question: 'The princess of the Zambouli Tribe, who was renamed queen of the jungle who would not live on a plain, what sequence?', answer: 'Sheena Hills' },
-        { id: 2, question: 'It was so large to be hung on a shelf so it stood on the floor for ninety years. It was even taller than the owner.', answer: 'Grandfather\'s Clock' },
-        { id: 3, question: 'Award winning Netflix Lacasa de Papels theme song.', answer: 'Bella Ciao' },
-        { id: 4, question: 'Canis Lupus familiaries that is hot.', answer: 'Hotdog' },
-        { id: 5, question: 'Mother is Gold in an indigenous dialect.', answer: 'Iya ni Wura' },
-        { id: 6, question: 'Neither consider the things of the old, Behold, I will do a new thing; now it shall?', answer: 'Spring Forth' },
-        { id: 7, question: 'Unidade in (English) the language of the colonial masters.', answer: 'Unity' },
-        { id: 8, question: 'Sequence that goes with the German tune \'Valderi Valdera\'.', answer: 'Scotland' }
+        // Default trivia – will be populated from Firestore
     ],
     executives: {
         president: [],
@@ -397,13 +441,15 @@ export async function saveAllData(data) {
     try {
         const batch = writeBatch(db);
 
-        // Save pages
+        // Save pages with merge to avoid overwriting missing fields
         for (const [pageName, pageData] of Object.entries(data.pages)) {
             const docRef = doc(db, 'pages', pageName);
-            batch.set(docRef, pageData);
+            batch.set(docRef, pageData, { merge: true });
         }
 
-        // Save trivia - clear and re-add
+        // Save trivia - clear and re-add (appending not possible with batch easily)
+        // We'll keep existing behavior: delete all and re-add.
+        // If you want to append only, you can modify this.
         const triviaRef = collection(db, 'trivia');
         const snapshot = await getDocs(triviaRef);
         snapshot.forEach(doc => batch.delete(doc.ref));
@@ -413,13 +459,13 @@ export async function saveAllData(data) {
             batch.set(newDocRef, item);
         }
 
-        // Save executives
+        // Save executives - overwrite (but executives are stored as a single doc with arrays)
         const execRef = doc(db, 'executives', 'all');
         batch.set(execRef, data.executives);
 
-        // Save settings
+        // Save settings - merge to not lose any fields
         const settingsRef = doc(db, 'settings', 'admin');
-        batch.set(settingsRef, data.settings);
+        batch.set(settingsRef, data.settings, { merge: true });
 
         await batch.commit();
         return true;
@@ -432,7 +478,7 @@ export async function saveAllData(data) {
 export async function savePage(pageName, pageData) {
     try {
         const docRef = doc(db, 'pages', pageName);
-        await setDoc(docRef, pageData);
+        await setDoc(docRef, pageData, { merge: true });
         return true;
     } catch (error) {
         console.error(`Error saving page ${pageName}:`, error);
@@ -490,7 +536,7 @@ export async function updateExecutives(executivesData) {
 export async function updatePassword(newPassword) {
     try {
         const docRef = doc(db, 'settings', 'admin');
-        await setDoc(docRef, { password: newPassword });
+        await setDoc(docRef, { password: newPassword }, { merge: true });
         return true;
     } catch (error) {
         console.error('Error updating password:', error);
@@ -550,6 +596,6 @@ export default {
     saveAllData, savePage, addTriviaItem, deleteTriviaItem,
     updateExecutives, updatePassword,
     subscribeToPage, subscribeToTrivia,
-    escapeHtml, showToast,
+    escapeHtml, sanitizeHtml, showToast,
     DEFAULT_DATA
 };
