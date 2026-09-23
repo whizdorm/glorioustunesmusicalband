@@ -418,6 +418,15 @@
             box-shadow: inset 0 -2px 0 var(--color-accent);
         }
 
+        /* Custom role tab styling */
+        .tab-btn.custom-role-tab {
+            border: 1px solid rgba(212, 168, 76, 0.2);
+        }
+
+        .tab-btn.custom-role-tab.active {
+            border-color: var(--color-accent);
+        }
+
         .tab-content {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -471,6 +480,7 @@
             padding: 0 8px;
             border-radius: 4px;
             white-space: nowrap;
+            margin-left: auto;
         }
 
         .executive-item .name {
@@ -480,6 +490,14 @@
         .executive-item .role-icon {
             font-size: 1.1rem;
             margin-right: 4px;
+        }
+
+        .empty-state {
+            color: var(--color-text-muted);
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 0.95rem;
+            grid-column: 1 / -1;
         }
 
         .other-section-title {
@@ -768,7 +786,7 @@
                 </div>
             </div>
 
-            <!-- ===== OTHER EXECUTIVES (Hardcoded, grouped by role) ===== -->
+            <!-- ===== OTHER EXECUTIVES (Hardcoded + Dynamic custom roles) ===== -->
             <div id="Past Executives">
                 <h3 class="other-section-title">Past <span class="accent-text">Executives</span></h3>
                 <p class="other-section-sub">Leaders who have served in various roles across the years.</p>
@@ -786,6 +804,7 @@
                         <button class="tab-btn" data-tab="brass">Chief Brass</button>
                         <button class="tab-btn" data-tab="bass">Chief Bass</button>
                         <button class="tab-btn" data-tab="tenor">Chief Tenor</button>
+                        <!-- Custom role tabs will be injected here by JS -->
                     </div>
 
                     <!-- Tab Content -->
@@ -1109,6 +1128,8 @@
                                 <div class="executive-item"><span class="role-icon">💯</span><span class="name">Emmanuel</span><span class="batch">25B</span></div>
                             </div>
                         </div>
+
+                        <!-- Custom role tabs content will be injected here by JS -->
                     </div><!-- end tabContent -->
                 </div><!-- end tabs-container -->
             </div><!-- end otherExecutives -->
@@ -1143,8 +1164,15 @@
     </footer>
 
     <!-- ===== SCRIPTS ===== -->
-    <script>
-        // Hamburger toggle
+    <script type="module">
+        // ============================================================
+        // IMPORT: Firebase helpers
+        // ============================================================
+        import { loadCustomRoles, loadExecutives, escapeHtml } from './script.js';
+
+        // ============================================================
+        // HAMBURGER MENU
+        // ============================================================
         const hamburger = document.getElementById('hamburger');
         const nav = document.getElementById('nav');
 
@@ -1160,7 +1188,9 @@
             });
         });
 
-        // Header scroll shadow
+        // ============================================================
+        // HEADER SCROLL SHADOW
+        // ============================================================
         const header = document.getElementById('header');
         window.addEventListener('scroll', () => {
             if (window.pageYOffset > 30) {
@@ -1170,27 +1200,91 @@
             }
         });
 
-        // Tab switching logic
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
+        // ============================================================
+        // TAB SWITCHING (works for BOTH hardcoded and dynamically-injected tabs)
+        // ============================================================
+        function attachTabSwitching() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
 
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Remove active class from all buttons and contents
-                tabBtns.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
+            tabBtns.forEach(btn => {
+                // Avoid double-binding: remove any previous listener by cloning
+                // (Simpler: just check a data-bound flag)
+                if (btn.dataset.bound === 'true') return;
+                btn.dataset.bound = 'true';
 
-                // Add active to clicked button
-                btn.classList.add('active');
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
 
-                // Show corresponding content
-                const tabId = btn.dataset.tab;
-                const targetContent = document.getElementById(`tab-${tabId}`);
-                if (targetContent) {
-                    targetContent.classList.add('active');
-                }
+                    btn.classList.add('active');
+                    const tabId = btn.dataset.tab;
+                    const target = document.getElementById(`tab-${tabId}`);
+                    if (target) target.classList.add('active');
+                });
             });
-        });
+        }
+
+        // Attach immediately for hardcoded tabs
+        attachTabSwitching();
+
+        // ============================================================
+        // LOAD CUSTOM ROLES FROM FIREBASE & INJECT AS NEW TABS
+        // ============================================================
+        (async function loadCustomRolesIntoTabs() {
+            try {
+                const customRoles = await loadCustomRoles();
+                const roleKeys = Object.keys(customRoles || {});
+                if (roleKeys.length === 0) return;
+
+                const executives = await loadExecutives();
+
+                const tabsNav = document.getElementById('tabsNav');
+                const tabContent = document.getElementById('tabContent');
+
+                roleKeys.forEach(roleKey => {
+                    const role = customRoles[roleKey];
+                    const items = (executives && executives[roleKey]) || [];
+
+                    // --- Add the tab button ---
+                    const btn = document.createElement('button');
+                    btn.className = 'tab-btn custom-role-tab';
+                    btn.dataset.tab = roleKey;
+                    btn.textContent = role.label;
+                    tabsNav.appendChild(btn);
+
+                    // --- Add the tab content panel ---
+                    const panel = document.createElement('div');
+                    panel.className = 'tab-content';
+                    panel.id = `tab-${roleKey}`;
+
+                    const list = document.createElement('div');
+                    list.className = 'executive-list';
+
+                    if (items.length === 0) {
+                        list.innerHTML = '<div class="empty-state">No executives in this role yet.</div>';
+                    } else {
+                        list.innerHTML = items.map(item => `
+                            <div class="executive-item">
+                                <span class="role-icon">${escapeHtml(role.icon || '🏅')}</span>
+                                <span class="name">${escapeHtml(item.name)}</span>
+                                <span class="batch">${escapeHtml(item.batch)}</span>
+                            </div>
+                        `).join('');
+                    }
+
+                    panel.appendChild(list);
+                    tabContent.appendChild(panel);
+                });
+
+                // Re-attach tab switching so new tabs are clickable
+                attachTabSwitching();
+
+            } catch (err) {
+                // Silent fail — custom roles are optional
+                console.warn('Could not load custom roles:', err);
+            }
+        })();
     </script>
 </body>
 </html>
