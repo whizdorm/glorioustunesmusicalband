@@ -437,6 +437,39 @@
         }
         .photo-upload-inline input[type="file"] { display: none; }
 
+        /* ===== REORDER BUTTONS ===== */
+        .reorder-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .reorder-btn {
+            background: rgba(212,168,76,0.08);
+            border: 1px solid rgba(212,168,76,0.25);
+            color: var(--color-accent);
+            width: 26px;
+            height: 22px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            font-family: "Inter", sans-serif;
+            padding: 0;
+            line-height: 1;
+        }
+        .reorder-btn:hover:not(:disabled) {
+            background: rgba(212,168,76,0.22);
+            border-color: var(--color-accent);
+        }
+        .reorder-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
         /* ===== TOAST ===== */
         .toast {
             position: fixed; bottom: 24px; right: 24px;
@@ -644,7 +677,7 @@
                 <div class="file-name" id="photoModalFileName" style="color:var(--color-text-muted);font-size:0.85rem;margin-top:8px;">
                     No file selected
                 </div>
-                <div class="helper" style="margin-top:6px;">Image will be stored in Firestore as base64.</div>
+                <div class="helper" style="margin-top:6px;">Image will be uploaded to Firebase Storage.</div>
             </div>
             <div class="modal-actions" style="justify-content:space-between;">
                 <button class="btn btn-danger btn-sm" id="photoModalRemoveBtn" onclick="window.removeModalPhoto()" style="display:none;">
@@ -716,6 +749,8 @@
             updatePassword,
             escapeHtml,
             showToast,
+            uploadInauguralPhoto,
+            removeInauguralPhoto,
             DEFAULT_DATA
         } from './script.js';
 
@@ -730,7 +765,7 @@
         // Photo modal state
         let photoModalRole = null;
         let photoModalIndex = -1;
-        let photoModalDataUrl = null;
+        let photoModalFile = null;
 
         // ============================================================
         // DEFAULT EXECUTIVE ROLES (built-in)
@@ -768,7 +803,7 @@
         ];
 
         // ============================================================
-        // GET ALL ROLES (default + custom)
+        // HELPERS
         // ============================================================
         function getAllRoles() {
             const customRoles = (appData && appData.customRoles) || {};
@@ -779,9 +814,6 @@
             return !!(appData && appData.customRoles && appData.customRoles[roleKey]);
         }
 
-        // ============================================================
-        // TOAST WRAPPER
-        // ============================================================
         function toast(message, isError = false) {
             showToast(message, isError);
         }
@@ -864,20 +896,17 @@
                 document.getElementById('adminLayout').classList.add('active');
                 appData = await loadAllData();
 
-                // Ensure executives.inaugural exists and is filled
                 if (!appData.executives) appData.executives = {};
                 if (!appData.executives.inaugural || appData.executives.inaugural.length === 0) {
                     appData.executives.inaugural = JSON.parse(JSON.stringify(INAUGURAL_DEFAULT));
                     await saveAllData(appData);
                 } else {
-                    // Ensure every inaugural entry has a `photo` key (backwards compat)
                     appData.executives.inaugural = appData.executives.inaugural.map(item => ({
                         ...item,
                         photo: item.photo || null
                     }));
                 }
 
-                // Ensure customRoles exists
                 if (!appData.customRoles) appData.customRoles = {};
 
                 renderPage('dashboard');
@@ -1746,7 +1775,7 @@
         };
 
         // ============================================================
-        // EXECUTIVES EDITOR (with Add Role + Photo upload for inaugural)
+        // EXECUTIVES EDITOR (with Add Role + Photo upload + Reorder)
         // ============================================================
         function renderExecutivesEditor() {
             const allRoles = getAllRoles();
@@ -1784,7 +1813,7 @@
                                     <h4 style="color:var(--color-white);font-size:1rem;">
                                         ${roleInfo.icon} ${roleInfo.label}
                                         <span style="color:var(--color-text-muted);font-weight:400;font-size:0.85rem;">(${items.length})</span>
-                                        ${isInaugural ? '<span style="color:var(--color-accent);font-weight:400;font-size:0.75rem;margin-left:8px;">📷 Photos supported</span>' : ''}
+                                        ${isInaugural ? '<span style="color:var(--color-accent);font-weight:400;font-size:0.75rem;margin-left:8px;">📷 Photos + Drag-free reorder</span>' : ''}
                                     </h4>
                                     ${isCustom ? `<button class="btn btn-danger btn-sm" onclick="window.deleteCustomRole('${role}')">🗑️ Delete Role</button>` : ''}
                                 </div>
@@ -1818,15 +1847,30 @@
             `;
         }
 
-        // Render inaugural executives with photo thumbnails and upload buttons
+        // Render inaugural executives with photo thumbnails, upload buttons, and reorder arrows
         function renderInauguralList(items) {
             if (!items || items.length === 0) {
                 return '<div class="empty-state">No inaugural executives yet.</div>';
             }
+            const lastIndex = items.length - 1;
             return `
                 <div style="display:flex;flex-direction:column;gap:10px;">
                     ${items.map((item, i) => `
                         <div class="photo-upload-inline">
+                            <div class="reorder-group">
+                                <button
+                                    class="reorder-btn"
+                                    onclick="window.moveExecutive('inaugural', ${i}, -1)"
+                                    ${i === 0 ? 'disabled' : ''}
+                                    title="Move up"
+                                >▲</button>
+                                <button
+                                    class="reorder-btn"
+                                    onclick="window.moveExecutive('inaugural', ${i}, 1)"
+                                    ${i === lastIndex ? 'disabled' : ''}
+                                    title="Move down"
+                                >▼</button>
+                            </div>
                             <div class="exec-photo-cell ${item.photo ? '' : 'no-photo'}">
                                 <img src="${item.photo || ''}" alt="${escapeHtml(item.name)}" onerror="this.parentElement.classList.add('no-photo'); this.style.display='none';" />
                             </div>
@@ -1836,7 +1880,7 @@
                             </div>
                             <div class="photo-actions">
                                 <button class="upload-photo-label" onclick="window.openPhotoModal('inaugural', ${i})">
-                                    ${item.photo ? '🔄 Replace Photo' : '📷 Upload Photo'}
+                                    ${item.photo ? '🔄 Replace' : '📷 Upload'}
                                 </button>
                                 <button class="btn btn-danger btn-sm" onclick="window.deleteExecutive('inaugural', ${i})">🗑️</button>
                             </div>
@@ -1845,6 +1889,22 @@
                 </div>
             `;
         }
+
+        // ===== REORDER EXECUTIVES =====
+        window.moveExecutive = async function(role, index, direction) {
+            const items = appData.executives[role];
+            if (!items) return;
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= items.length) return;
+
+            // Swap the two entries
+            [items[index], items[newIndex]] = [items[newIndex], items[index]];
+
+            // Persist
+            await updateExecutives(appData.executives);
+            renderPage('executives');
+            toast(`Moved "${items[newIndex].name}" ${direction < 0 ? 'up' : 'down'}`);
+        };
 
         // ===== ADD ROLE MODAL =====
         window.openAddRoleModal = function() {
@@ -1956,7 +2016,6 @@
             }
             if (!appData.executives[role]) appData.executives[role] = [];
             const newExec = { name, batch };
-            // Inaugural executives get a `photo` field (defaults to null)
             if (role === 'inaugural') newExec.photo = null;
             appData.executives[role].push(newExec);
             await updateExecutives(appData.executives);
@@ -1969,6 +2028,14 @@
         window.deleteExecutive = async function(role, index) {
             if (!confirm('Delete this executive?')) return;
             if (appData.executives[role]) {
+                // If inaugural, try to delete associated photo from Storage first
+                if (role === 'inaugural') {
+                    try {
+                        await removeInauguralPhoto(index);
+                    } catch (e) {
+                        console.warn('Could not delete photo:', e);
+                    }
+                }
                 appData.executives[role].splice(index, 1);
                 await updateExecutives(appData.executives);
                 renderPage('executives');
@@ -1977,12 +2044,13 @@
         };
 
         // ============================================================
-        // PHOTO MODAL (for Inaugural Executives)
+        // PHOTO MODAL
         // ============================================================
         window.openPhotoModal = function(role, index) {
             photoModalRole = role;
             photoModalIndex = index;
-            photoModalDataUrl = null;
+            photoModalFile = null;
+            document.getElementById('photoModal').dataset.removeExisting = 'false';
 
             const exec = appData.executives[role][index];
             const modal = document.getElementById('photoModal');
@@ -2003,7 +2071,6 @@
                 previewImg.style.display = 'block';
                 fileName.textContent = '✅ Current photo loaded';
                 removeBtn.style.display = 'inline-flex';
-                photoModalDataUrl = exec.photo;
             } else {
                 previewImg.src = '';
                 previewImg.style.display = 'none';
@@ -2018,7 +2085,7 @@
             document.getElementById('photoModal').classList.remove('active');
             photoModalRole = null;
             photoModalIndex = -1;
-            photoModalDataUrl = null;
+            photoModalFile = null;
         };
 
         document.getElementById('photoModal').addEventListener('click', function(e) {
@@ -2038,12 +2105,12 @@
                 event.target.value = '';
                 return;
             }
+            photoModalFile = file;
             const reader = new FileReader();
             reader.onload = function(e) {
-                photoModalDataUrl = e.target.result;
                 const preview = document.getElementById('photoModalPreview');
                 const previewImg = document.getElementById('photoModalPreviewImg');
-                previewImg.src = photoModalDataUrl;
+                previewImg.src = e.target.result;
                 previewImg.style.display = 'block';
                 preview.classList.remove('no-photo');
                 document.getElementById('photoModalFileName').textContent = '✅ ' + file.name;
@@ -2053,25 +2120,54 @@
         };
 
         window.removeModalPhoto = function() {
-            photoModalDataUrl = null;
+            photoModalFile = null;
             document.getElementById('photoModalPreviewImg').src = '';
             document.getElementById('photoModalPreviewImg').style.display = 'none';
             document.getElementById('photoModalPreview').classList.add('no-photo');
             document.getElementById('photoModalFileName').textContent = 'No file selected';
             document.getElementById('photoModalInput').value = '';
             document.getElementById('photoModalRemoveBtn').style.display = 'none';
+            document.getElementById('photoModal').dataset.removeExisting = 'true';
         };
 
         window.saveModalPhoto = async function() {
             if (photoModalRole === null || photoModalIndex < 0) return;
-            const exec = appData.executives[photoModalRole][photoModalIndex];
-            if (!exec) return;
 
-            exec.photo = photoModalDataUrl || null;
-            await updateExecutives(appData.executives);
-            window.closePhotoModal();
-            renderPage('executives');
-            toast(photoModalDataUrl ? 'Photo saved!' : 'Photo removed!');
+            const modal = document.getElementById('photoModal');
+            const wantRemove = modal.dataset.removeExisting === 'true';
+            modal.dataset.removeExisting = 'false';
+
+            // Case 1: Remove existing photo
+            if (wantRemove && !photoModalFile) {
+                const result = await removeInauguralPhoto(photoModalIndex);
+                if (result.success) {
+                    appData = await loadAllData();
+                    window.closePhotoModal();
+                    renderPage('executives');
+                    toast('Photo removed!');
+                } else {
+                    toast('Error: ' + result.error, true);
+                }
+                return;
+            }
+
+            // Case 2: Upload new file
+            if (photoModalFile) {
+                toast('Uploading...');
+                const result = await uploadInauguralPhoto(photoModalIndex, photoModalFile);
+                if (result.success) {
+                    appData = await loadAllData();
+                    window.closePhotoModal();
+                    renderPage('executives');
+                    toast('Photo uploaded!');
+                } else {
+                    toast('Error: ' + result.error, true);
+                }
+                return;
+            }
+
+            // Case 3: Nothing changed
+            toast('No changes to save.', true);
         };
 
         // ============================================================
