@@ -449,6 +449,41 @@
             color: var(--color-text-muted);
             font-size: 0.8rem; margin-top: 8px;
         }
+
+        /* ===== ADD ROLE MODAL ===== */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 5000;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            display: none; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: var(--color-primary-light);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius);
+            padding: 32px 28px;
+            max-width: 480px; width: 100%;
+            box-shadow: var(--shadow-card);
+        }
+        .modal-box h3 {
+            font-family: "Playfair Display", serif;
+            font-size: 1.5rem; color: var(--color-accent);
+            margin-bottom: 20px;
+        }
+        .modal-box .modal-actions {
+            display: flex; gap: 12px; justify-content: flex-end;
+            margin-top: 24px;
+        }
+        .custom-role-badge {
+            font-size: 0.6rem;
+            background: rgba(212,168,76,0.15);
+            color: var(--color-accent);
+            padding: 1px 8px; border-radius: 10px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -464,6 +499,31 @@
             <input type="password" id="passwordInput" placeholder="••••••••" />
             <button class="btn" id="loginBtn">Login</button>
             <div class="login-error" id="loginError">Invalid credentials or not an admin.</div>
+        </div>
+    </div>
+
+    <!-- ===== ADD ROLE MODAL ===== -->
+    <div class="modal-overlay" id="addRoleModal">
+        <div class="modal-box">
+            <h3>➕ Add New Executive Role</h3>
+            <div class="form-group">
+                <label>Role Label *</label>
+                <input id="newRoleLabel" placeholder="e.g. Assistant P.R.O., Welfare Officer" />
+            </div>
+            <div class="form-group">
+                <label>Role Key (unique identifier, no spaces)</label>
+                <input id="newRoleKey" placeholder="e.g. apro, welfare" />
+                <div class="helper">Auto-generated from label if left blank.</div>
+            </div>
+            <div class="form-group">
+                <label>Icon (emoji)</label>
+                <input id="newRoleIcon" placeholder="e.g. 🎯" maxlength="4" />
+                <div class="helper">Optional. Defaults to 🏅 if left blank.</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="window.closeAddRoleModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="window.saveNewRole()">Add Role</button>
+            </div>
         </div>
     </div>
 
@@ -537,6 +597,23 @@
         let editingEventIndex = -1;
 
         // ============================================================
+        // DEFAULT EXECUTIVE ROLES (built-in)
+        // ============================================================
+        const DEFAULT_EXECUTIVE_ROLES = {
+            inaugural: { label: 'Inaugural Excos', icon: '🏆' },
+            president: { label: 'President', icon: '✅' },
+            major: { label: 'Major', icon: '🥁' },
+            provost: { label: 'Provost', icon: '🧑🏾‍✈️' },
+            pro: { label: 'P.R.O.', icon: '📢' },
+            dos: { label: 'D.O.S.', icon: '📸' },
+            gs: { label: 'General Secretary', icon: '✍🏽' },
+            ags: { label: 'A.G.S.', icon: '📝' },
+            brass: { label: 'Chief Brass', icon: '🎺' },
+            bass: { label: 'Chief Bass', icon: '💣' },
+            tenor: { label: 'Chief Tenor', icon: '💯' }
+        };
+
+        // ============================================================
         // INAUGURAL DEFAULT LIST
         // ============================================================
         const INAUGURAL_DEFAULT = [
@@ -553,6 +630,18 @@
             { name: 'Mariam Busayo (Treasurer)', batch: '17B' },
             { name: 'Onasanya Favor (Financial Secretary)', batch: '23C' }
         ];
+
+        // ============================================================
+        // GET ALL ROLES (default + custom)
+        // ============================================================
+        function getAllRoles() {
+            const customRoles = (appData && appData.customRoles) || {};
+            return { ...DEFAULT_EXECUTIVE_ROLES, ...customRoles };
+        }
+
+        function isCustomRole(roleKey) {
+            return !!(appData && appData.customRoles && appData.customRoles[roleKey]);
+        }
 
         // ============================================================
         // TOAST WRAPPER
@@ -646,6 +735,9 @@
                     await saveAllData(appData);
                 }
 
+                // Ensure customRoles exists
+                if (!appData.customRoles) appData.customRoles = {};
+
                 renderPage('dashboard');
             } else {
                 document.getElementById('loginOverlay').classList.remove('hidden');
@@ -735,11 +827,13 @@
             const totalExecs = Object.values(appData.executives).reduce((sum, arr) => sum + arr.length, 0);
             const totalPastEvents = appData.pages.events.pastEvents.length;
             const totalUpcoming = appData.pages.events.upcomingEvents.length;
+            const totalRoles = Object.keys(getAllRoles()).length;
 
             return `
                 <div class="stats-grid">
                     <div class="stat-card"><div class="number">${totalTrivia}</div><div class="label">Trivia Questions</div></div>
                     <div class="stat-card"><div class="number">${totalExecs}</div><div class="label">Total Executives</div></div>
+                    <div class="stat-card"><div class="number">${totalRoles}</div><div class="label">Executive Roles</div></div>
                     <div class="stat-card"><div class="number">${totalPastEvents}</div><div class="label">Past Events</div></div>
                     <div class="stat-card"><div class="number">${totalUpcoming}</div><div class="label">Upcoming Events</div></div>
                 </div>
@@ -758,7 +852,7 @@
                         <div class="card-title">Data Summary</div>
                         <div style="display:flex;flex-direction:column;gap:4px;color:var(--color-text-muted);font-size:0.9rem;">
                             <div>📝 Trivia: <strong style="color:var(--color-white);">${totalTrivia}</strong> questions</div>
-                            <div>👥 Executives: <strong style="color:var(--color-white);">${totalExecs}</strong> across ${Object.keys(appData.executives).length} roles</div>
+                            <div>👥 Executives: <strong style="color:var(--color-white);">${totalExecs}</strong> across ${totalRoles} roles</div>
                             <div>📅 Past Events: <strong style="color:var(--color-white);">${totalPastEvents}</strong> recorded</div>
                             <div>📅 Upcoming Events: <strong style="color:var(--color-white);">${totalUpcoming}</strong> scheduled</div>
                             <div>📄 Pages: <strong style="color:var(--color-white);">5</strong> content pages</div>
@@ -1511,62 +1605,175 @@
         };
 
         // ============================================================
-        // EXECUTIVES EDITOR (with Inaugural role)
+        // EXECUTIVES EDITOR (with Add Role feature)
         // ============================================================
-        const EXECUTIVE_ROLES = {
-            inaugural: { label: 'Inaugural Excos', icon: '🏆' },
-            president: { label: 'President', icon: '✅' },
-            major: { label: 'Major', icon: '🥁' },
-            provost: { label: 'Provost', icon: '🧑🏾‍✈️' },
-            pro: { label: 'P.R.O.', icon: '📢' },
-            dos: { label: 'D.O.S.', icon: '📸' },
-            gs: { label: 'General Secretary', icon: '✍🏽' },
-            ags: { label: 'A.G.S.', icon: '📝' },
-            brass: { label: 'Chief Brass', icon: '🎺' },
-            bass: { label: 'Chief Bass', icon: '💣' },
-            tenor: { label: 'Chief Tenor', icon: '💯' }
-        };
-
         function renderExecutivesEditor() {
-            const roles = Object.keys(EXECUTIVE_ROLES);
+            const allRoles = getAllRoles();
+            const roleKeys = Object.keys(allRoles);
+            const customCount = Object.keys(appData.customRoles || {}).length;
+
             return `
                 <div class="card">
-                    <div class="card-title">Executive Roles</div>
-                    <div class="executive-role-tabs">
-                        ${roles.map(role => `
-                            <button class="role-tab ${role === activeExecRole ? 'active' : ''}" onclick="window.switchExecRole('${role}')">
-                                ${EXECUTIVE_ROLES[role].icon} ${EXECUTIVE_ROLES[role].label}
-                            </button>
-                        `).join('')}
+                    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                        <span>Executive Roles <span class="badge">${roleKeys.length}</span></span>
+                        <button class="btn btn-accent btn-sm" onclick="window.openAddRoleModal()">➕ Add New Role</button>
                     </div>
-                    ${roles.map(role => `
-                        <div class="executive-role-content ${role === activeExecRole ? 'active' : ''}" id="execRole_${role}">
-                            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-                                <input id="execNewName_${role}" placeholder="Name" style="flex:1;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:var(--color-white);" />
-                                <input id="execNewBatch_${role}" placeholder="Batch (e.g. 15A)" style="width:100px;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:var(--color-white);" />
-                                <button class="btn btn-primary btn-sm" onclick="window.addExecutive('${role}')">➕ Add</button>
-                            </div>
-                            <div class="item-list">
-                                ${appData.executives[role] && appData.executives[role].length > 0 ? 
-                                    appData.executives[role].map((item, i) => `
-                                        <div class="item-row">
-                                            <div class="item-info">
-                                                <div class="title">${escapeHtml(item.name)}</div>
-                                                <div class="meta">${escapeHtml(item.batch)}</div>
+                    ${customCount > 0 ? `<div class="helper" style="margin-bottom:12px;">${customCount} custom role${customCount > 1 ? 's' : ''} added. Custom roles can be deleted.</div>` : ''}
+                    <div class="executive-role-tabs">
+                        ${roleKeys.map(role => {
+                            const isCustom = isCustomRole(role);
+                            const roleInfo = allRoles[role];
+                            return `
+                                <button class="role-tab ${role === activeExecRole ? 'active' : ''}" onclick="window.switchExecRole('${role}')">
+                                    ${roleInfo.icon} ${roleInfo.label}
+                                    ${isCustom ? '<span class="custom-role-badge">custom</span>' : ''}
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    ${roleKeys.map(role => {
+                        const isCustom = isCustomRole(role);
+                        const roleInfo = allRoles[role];
+                        const items = appData.executives[role] || [];
+                        return `
+                            <div class="executive-role-content ${role === activeExecRole ? 'active' : ''}" id="execRole_${role}">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                                    <h4 style="color:var(--color-white);font-size:1rem;">${roleInfo.icon} ${roleInfo.label} <span style="color:var(--color-text-muted);font-weight:400;font-size:0.85rem;">(${items.length})</span></h4>
+                                    ${isCustom ? `<button class="btn btn-danger btn-sm" onclick="window.deleteCustomRole('${role}')">🗑️ Delete Role</button>` : ''}
+                                </div>
+                                <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+                                    <input id="execNewName_${role}" placeholder="Name" style="flex:1;min-width:120px;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:var(--color-white);" />
+                                    <input id="execNewBatch_${role}" placeholder="Batch (e.g. 15A)" style="width:110px;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:var(--color-white);" />
+                                    <button class="btn btn-primary btn-sm" onclick="window.addExecutive('${role}')">➕ Add</button>
+                                </div>
+                                <div class="item-list">
+                                    ${items.length > 0 ? 
+                                        items.map((item, i) => `
+                                            <div class="item-row">
+                                                <div class="item-info">
+                                                    <div class="title">${escapeHtml(item.name)}</div>
+                                                    <div class="meta">${escapeHtml(item.batch)}</div>
+                                                </div>
+                                                <div class="item-actions">
+                                                    <button class="btn btn-danger btn-sm" onclick="window.deleteExecutive('${role}', ${i})">🗑️</button>
+                                                </div>
                                             </div>
-                                            <div class="item-actions">
-                                                <button class="btn btn-danger btn-sm" onclick="window.deleteExecutive('${role}', ${i})">🗑️</button>
-                                            </div>
-                                        </div>
-                                    `).join('') : 
-                                    '<div class="empty-state">No executives in this role.</div>'
-                                }
+                                        `).join('') : 
+                                        '<div class="empty-state">No executives in this role yet.</div>'
+                                    }
+                                </div>
                             </div>
-                        </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             `;
         }
+
+        // ===== ADD ROLE MODAL =====
+        window.openAddRoleModal = function() {
+            document.getElementById('newRoleLabel').value = '';
+            document.getElementById('newRoleKey').value = '';
+            document.getElementById('newRoleIcon').value = '';
+            document.getElementById('addRoleModal').classList.add('active');
+            document.getElementById('newRoleLabel').focus();
+        };
+
+        window.closeAddRoleModal = function() {
+            document.getElementById('addRoleModal').classList.remove('active');
+        };
+
+        // Close modal on overlay click
+        document.getElementById('addRoleModal').addEventListener('click', function(e) {
+            if (e.target === this) window.closeAddRoleModal();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.closeAddRoleModal();
+            }
+        });
+
+        // Auto-generate key from label
+        document.getElementById('newRoleLabel').addEventListener('input', function() {
+            const keyInput = document.getElementById('newRoleKey');
+            if (!keyInput.dataset.touched) {
+                keyInput.value = this.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '_')
+                    .replace(/^_|_$/g, '');
+            }
+        });
+
+        document.getElementById('newRoleKey').addEventListener('input', function() {
+            this.dataset.touched = 'true';
+        });
+
+        window.saveNewRole = async function() {
+            const label = document.getElementById('newRoleLabel').value.trim();
+            let key = document.getElementById('newRoleKey').value.trim().toLowerCase();
+            const icon = document.getElementById('newRoleIcon').value.trim() || '🏅';
+
+            if (!label) {
+                toast('Please enter a role label.', true);
+                return;
+            }
+
+            // Auto-generate key if empty
+            if (!key) {
+                key = label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+            }
+
+            // Validate key
+            if (!/^[a-z0-9_]+$/.test(key)) {
+                toast('Role key can only contain lowercase letters, numbers, and underscores.', true);
+                return;
+            }
+
+            // Check for conflicts
+            const allRoles = getAllRoles();
+            if (allRoles[key]) {
+                toast('A role with this key already exists. Please choose a different key.', true);
+                return;
+            }
+
+            // Save custom role
+            if (!appData.customRoles) appData.customRoles = {};
+            appData.customRoles[key] = { label, icon };
+
+            // Initialize executives array for this role
+            if (!appData.executives[key]) appData.executives[key] = [];
+
+            await saveAllData(appData);
+            window.closeAddRoleModal();
+
+            // Switch to the new role
+            activeExecRole = key;
+            renderPage('executives');
+            toast(`Role "${label}" added successfully!`);
+        };
+
+        window.deleteCustomRole = async function(roleKey) {
+            const role = getAllRoles()[roleKey];
+            if (!role) return;
+
+            if (!confirm(`Delete the custom role "${role.label}"?\n\nAll executives in this role will also be removed.`)) return;
+
+            // Remove role definition
+            delete appData.customRoles[roleKey];
+
+            // Remove executives for this role
+            delete appData.executives[roleKey];
+
+            // If the active role was deleted, switch back to inaugural
+            if (activeExecRole === roleKey) {
+                activeExecRole = 'inaugural';
+            }
+
+            await saveAllData(appData);
+            renderPage('executives');
+            toast(`Role "${role.label}" deleted.`);
+        };
 
         window.switchExecRole = function(role) {
             activeExecRole = role;
@@ -1730,6 +1937,7 @@
                 const merged = { ...DEFAULT_DATA, ...data };
                 merged.pages = { ...DEFAULT_DATA.pages, ...data.pages };
                 merged.executives = { ...DEFAULT_DATA.executives, ...data.executives };
+                merged.customRoles = data.customRoles || {};
                 if (!Array.isArray(merged.trivia)) merged.trivia = [];
                 appData = merged;
                 await saveAllData(appData);
@@ -1747,7 +1955,9 @@
             appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
             if (!appData.executives) appData.executives = {};
             appData.executives.inaugural = INAUGURAL_DEFAULT;
+            appData.customRoles = {};
             await saveAllData(appData);
+            activeExecRole = 'inaugural';
             toast('All data reset to defaults!');
             renderPage(currentPage);
         };
