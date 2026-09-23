@@ -16,6 +16,7 @@ import {
     orderBy,
     addDoc,
     writeBatch,
+    onSnapshot,
     enableIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 import {
@@ -59,6 +60,23 @@ try {
 export { app, db, auth };
 
 // ============================================================
+// DEFAULT EXECUTIVE ROLES (built-in, non-deletable)
+// ============================================================
+export const DEFAULT_EXECUTIVE_ROLES = {
+    inaugural: { label: 'Inaugural Excos', icon: '🏆' },
+    president: { label: 'President', icon: '✅' },
+    major:     { label: 'Major', icon: '🥁' },
+    provost:   { label: 'Provost', icon: '🧑🏾‍✈️' },
+    pro:       { label: 'P.R.O.', icon: '📢' },
+    dos:       { label: 'D.O.S.', icon: '📸' },
+    gs:        { label: 'General Secretary', icon: '✍🏽' },
+    ags:       { label: 'A.G.S.', icon: '📝' },
+    brass:     { label: 'Chief Brass', icon: '🎺' },
+    bass:      { label: 'Chief Bass', icon: '💣' },
+    tenor:     { label: 'Chief Tenor', icon: '💯' }
+};
+
+// ============================================================
 // UTILITY FUNCTIONS
 // ============================================================
 
@@ -73,11 +91,10 @@ export function escapeHtml(text) {
 /** Sanitize HTML – allow only safe tags and attributes (for rich text) */
 export function sanitizeHtml(html) {
     if (!html) return '';
-    // Allowed tags – extend as needed
     const allowedTags = [
         'br', 'strong', 'em', 'u', 'p', 'ul', 'li', 'ol',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'span', 'div', 'a', 'b', 'i', 'u', 'sub', 'sup',
+        'span', 'div', 'a', 'b', 'i', 'sub', 'sup',
         'blockquote', 'pre', 'code'
     ];
 
@@ -101,15 +118,12 @@ export function sanitizeHtml(html) {
                 } else {
                     node.removeAttribute('href');
                 }
-                // Remove all other attributes
                 [...node.attributes].forEach(attr => {
                     if (attr.name !== 'href') node.removeAttribute(attr.name);
                 });
             } else {
-                // Remove all attributes for other tags
                 [...node.attributes].forEach(attr => node.removeAttribute(attr.name));
             }
-            // Recurse into children
             [...node.childNodes].forEach(child => sanitizeNode(child));
         }
     }
@@ -323,9 +337,7 @@ We move as one in perfect harmony and sync`
             heroDesc: 'Test your knowledge with our collection of past trivia questions and answers from GTMB events and gatherings.'
         }
     },
-    trivia: [
-        // Default trivia – will be populated from Firestore
-    ],
+    trivia: [],
     executives: {
         president: [],
         major: [],
@@ -339,10 +351,101 @@ We move as one in perfect harmony and sync`
         tenor: [],
         inaugural: []
     },
+    customRoles: {},   // <-- NEW: stores user-created roles
     settings: {
         password: 'admin123'
     }
 };
+
+// ============================================================
+// CUSTOM ROLES FUNCTIONS
+// ============================================================
+
+/**
+ * Load custom roles from Firestore.
+ * Stored at: config/customRoles → { roles: { key: { label, icon } } }
+ * Returns {} if none exist yet.
+ */
+export async function loadCustomRoles() {
+    try {
+        const ref = doc(db, 'config', 'customRoles');
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+            return snap.data().roles || {};
+        }
+        return {};
+    } catch (error) {
+        console.error('Error loading custom roles:', error);
+        return {};
+    }
+}
+
+/**
+ * Save custom roles to Firestore.
+ */
+export async function saveCustomRoles(customRoles) {
+    try {
+        const ref = doc(db, 'config', 'customRoles');
+        await setDoc(ref, { roles: customRoles || {} }, { merge: true });
+        return true;
+    } catch (error) {
+        console.error('Error saving custom roles:', error);
+        return false;
+    }
+}
+
+/**
+ * Add a single custom role. Returns updated roles object.
+ */
+export async function addCustomRole(key, label, icon = '🏅') {
+    try {
+        const customRoles = await loadCustomRoles();
+        if (customRoles[key]) {
+            return { success: false, error: 'Role key already exists' };
+        }
+        customRoles[key] = { label, icon };
+        await saveCustomRoles(customRoles);
+        return { success: true, roles: customRoles };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Delete a custom role by key.
+ */
+export async function deleteCustomRole(key) {
+    try {
+        const customRoles = await loadCustomRoles();
+        if (!customRoles[key]) {
+            return { success: false, error: 'Role not found' };
+        }
+        delete customRoles[key];
+        await saveCustomRoles(customRoles);
+
+        // Also remove executives stored for this role
+        const execRef = doc(db, 'executives', 'all');
+        const execSnap = await getDoc(execRef);
+        if (execSnap.exists()) {
+            const execs = execSnap.data();
+            if (execs[key]) {
+                delete execs[key];
+                await setDoc(execRef, execs);
+            }
+        }
+        return { success: true, roles: customRoles };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Get all roles = defaults merged with custom roles.
+ */
+export async function getAllRoles() {
+    const customRoles = await loadCustomRoles();
+    return { ...DEFAULT_EXECUTIVE_ROLES, ...customRoles };
+}
 
 // ============================================================
 // DATA LOADING FUNCTIONS
@@ -350,7 +453,13 @@ We move as one in perfect harmony and sync`
 
 export async function loadAllData() {
     try {
-        const data = { pages: {}, trivia: [], executives: {}, settings: {} };
+        const data = {
+            pages: {},
+            trivia: [],
+            executives: {},
+            customRoles: {},
+            settings: {}
+        };
 
         // Load pages
         const pagesRef = collection(db, 'pages');
@@ -372,13 +481,18 @@ export async function loadAllData() {
             data.executives = execDoc.data();
         }
 
+        // Load custom roles
+        const customRolesDoc = await getDoc(doc(db, 'config', 'customRoles'));
+        if (customRolesDoc.exists()) {
+            data.customRoles = customRolesDoc.data().roles || {};
+        }
+
         // Load settings
         const settingsDoc = await getDoc(doc(db, 'settings', 'admin'));
         if (settingsDoc.exists()) {
             data.settings = settingsDoc.data();
         }
 
-        // Merge with defaults
         return mergeWithDefaults(data);
     } catch (error) {
         console.error('Error loading data:', error);
@@ -451,15 +565,13 @@ export async function saveAllData(data) {
     try {
         const batch = writeBatch(db);
 
-        // Save pages with merge to avoid overwriting missing fields
+        // Save pages
         for (const [pageName, pageData] of Object.entries(data.pages)) {
             const docRef = doc(db, 'pages', pageName);
             batch.set(docRef, pageData, { merge: true });
         }
 
-        // Save trivia - clear and re-add (appending not possible with batch easily)
-        // We'll keep existing behavior: delete all and re-add.
-        // If you want to append only, you can modify this.
+        // Save trivia — clear and re-add
         const triviaRef = collection(db, 'trivia');
         const snapshot = await getDocs(triviaRef);
         snapshot.forEach(doc => batch.delete(doc.ref));
@@ -469,11 +581,15 @@ export async function saveAllData(data) {
             batch.set(newDocRef, item);
         }
 
-        // Save executives - overwrite (but executives are stored as a single doc with arrays)
+        // Save executives
         const execRef = doc(db, 'executives', 'all');
-        batch.set(execRef, data.executives);
+        batch.set(execRef, data.executives || {});
 
-        // Save settings - merge to not lose any fields
+        // Save custom roles
+        const customRolesRef = doc(db, 'config', 'customRoles');
+        batch.set(customRolesRef, { roles: data.customRoles || {} }, { merge: true });
+
+        // Save settings
         const settingsRef = doc(db, 'settings', 'admin');
         batch.set(settingsRef, data.settings, { merge: true });
 
@@ -578,6 +694,28 @@ export function subscribeToTrivia(callback) {
     });
 }
 
+export function subscribeToExecutives(callback) {
+    const docRef = doc(db, 'executives', 'all');
+    return onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            callback(docSnap.data());
+        } else {
+            callback(DEFAULT_DATA.executives);
+        }
+    });
+}
+
+export function subscribeToCustomRoles(callback) {
+    const docRef = doc(db, 'config', 'customRoles');
+    return onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            callback(docSnap.data().roles || {});
+        } else {
+            callback({});
+        }
+    });
+}
+
 // ============================================================
 // MERGE FUNCTION
 // ============================================================
@@ -586,11 +724,16 @@ function mergeWithDefaults(data) {
         pages: { ...DEFAULT_DATA.pages, ...data.pages },
         trivia: data.trivia.length > 0 ? data.trivia : DEFAULT_DATA.trivia,
         executives: { ...DEFAULT_DATA.executives, ...data.executives },
+        customRoles: { ...(data.customRoles || {}) },
         settings: { ...DEFAULT_DATA.settings, ...data.settings }
     };
-    // Ensure all executive roles exist
+    // Ensure all default executive roles exist
     for (const role of Object.keys(DEFAULT_DATA.executives)) {
         if (!merged.executives[role]) merged.executives[role] = [];
+    }
+    // Ensure custom roles have executive arrays
+    for (const roleKey of Object.keys(merged.customRoles)) {
+        if (!merged.executives[roleKey]) merged.executives[roleKey] = [];
     }
     return merged;
 }
@@ -603,9 +746,11 @@ export default {
     signIn, signOut, getCurrentUser, isAdmin, createAdminUser, onAuthChange,
     adminLogin,
     loadAllData, loadPage, loadTrivia, loadExecutives, loadSettings,
+    loadCustomRoles, getAllRoles,
     saveAllData, savePage, addTriviaItem, deleteTriviaItem,
     updateExecutives, updatePassword,
-    subscribeToPage, subscribeToTrivia,
+    addCustomRole, deleteCustomRole, saveCustomRoles,
+    subscribeToPage, subscribeToTrivia, subscribeToExecutives, subscribeToCustomRoles,
     escapeHtml, sanitizeHtml, showToast,
-    DEFAULT_DATA
+    DEFAULT_DATA, DEFAULT_EXECUTIVE_ROLES
 };
