@@ -360,6 +360,83 @@
             background: rgba(255,0,0,0.2);
         }
 
+        /* ===== EXECUTIVE PHOTO ===== */
+        .exec-photo-cell {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 2px solid rgba(212,168,76,0.3);
+            background: linear-gradient(145deg, rgba(26,61,42,0.7), rgba(15,42,26,0.9));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .exec-photo-cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .exec-photo-cell.no-photo::before {
+            content: "🎵";
+            font-size: 1.2rem;
+            opacity: 0.35;
+        }
+        .exec-photo-cell.no-photo img { display: none; }
+
+        .photo-upload-inline {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .photo-upload-inline .info {
+            flex: 1;
+            min-width: 150px;
+        }
+        .photo-upload-inline .info .title {
+            color: var(--color-white);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .photo-upload-inline .info .meta {
+            color: var(--color-text-muted);
+            font-size: 0.8rem;
+        }
+        .photo-upload-inline .photo-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .photo-upload-inline .upload-photo-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(46,125,50,0.15);
+            color: var(--color-accent);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid rgba(46,125,50,0.25);
+        }
+        .photo-upload-inline .upload-photo-label:hover {
+            background: rgba(46,125,50,0.25);
+            color: var(--color-accent-light);
+        }
+        .photo-upload-inline input[type="file"] { display: none; }
+
         /* ===== TOAST ===== */
         .toast {
             position: fixed; bottom: 24px; right: 24px;
@@ -484,6 +561,31 @@
             margin-left: 4px;
             vertical-align: middle;
         }
+
+        /* ===== PHOTO MODAL ===== */
+        .photo-modal-box {
+            max-width: 560px;
+        }
+        .photo-modal-preview {
+            width: 180px; height: 180px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid rgba(212,168,76,0.35);
+            background: linear-gradient(145deg, rgba(26,61,42,0.7), rgba(15,42,26,0.9));
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .photo-modal-preview img {
+            width: 100%; height: 100%;
+            object-fit: cover; display: block;
+        }
+        .photo-modal-preview.no-photo::before {
+            content: "🎵";
+            font-size: 3rem;
+            opacity: 0.3;
+        }
+        .photo-modal-preview.no-photo img { display: none; }
     </style>
 </head>
 <body>
@@ -523,6 +625,35 @@
             <div class="modal-actions">
                 <button class="btn btn-outline" onclick="window.closeAddRoleModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="window.saveNewRole()">Add Role</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PHOTO UPLOAD MODAL (for Inaugural Executives) ===== -->
+    <div class="modal-overlay" id="photoModal">
+        <div class="modal-box photo-modal-box">
+            <h3 id="photoModalTitle">📷 Upload Photo</h3>
+            <div class="photo-modal-preview" id="photoModalPreview">
+                <img id="photoModalPreviewImg" src="" alt="Preview" />
+            </div>
+            <div class="form-group" style="text-align:center;">
+                <label class="upload-photo-label" for="photoModalInput" style="justify-content:center;padding:10px 20px;">
+                    📸 Choose Photo (max 2MB)
+                </label>
+                <input type="file" id="photoModalInput" accept="image/*" onchange="window.handleModalPhotoUpload(event)" />
+                <div class="file-name" id="photoModalFileName" style="color:var(--color-text-muted);font-size:0.85rem;margin-top:8px;">
+                    No file selected
+                </div>
+                <div class="helper" style="margin-top:6px;">Image will be stored in Firestore as base64.</div>
+            </div>
+            <div class="modal-actions" style="justify-content:space-between;">
+                <button class="btn btn-danger btn-sm" id="photoModalRemoveBtn" onclick="window.removeModalPhoto()" style="display:none;">
+                    🗑️ Remove Photo
+                </button>
+                <div style="display:flex;gap:12px;">
+                    <button class="btn btn-outline" onclick="window.closePhotoModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="window.saveModalPhoto()">💾 Save Photo</button>
+                </div>
             </div>
         </div>
     </div>
@@ -596,39 +727,44 @@
         let activeExecRole = 'inaugural';
         let editingEventIndex = -1;
 
+        // Photo modal state
+        let photoModalRole = null;
+        let photoModalIndex = -1;
+        let photoModalDataUrl = null;
+
         // ============================================================
         // DEFAULT EXECUTIVE ROLES (built-in)
         // ============================================================
         const DEFAULT_EXECUTIVE_ROLES = {
             inaugural: { label: 'Inaugural Excos', icon: '🏆' },
             president: { label: 'President', icon: '✅' },
-            major: { label: 'Major', icon: '🥁' },
-            provost: { label: 'Provost', icon: '🧑🏾‍✈️' },
-            pro: { label: 'P.R.O.', icon: '📢' },
-            dos: { label: 'D.O.S.', icon: '📸' },
-            gs: { label: 'General Secretary', icon: '✍🏽' },
-            ags: { label: 'A.G.S.', icon: '📝' },
-            brass: { label: 'Chief Brass', icon: '🎺' },
-            bass: { label: 'Chief Bass', icon: '💣' },
-            tenor: { label: 'Chief Tenor', icon: '💯' }
+            major:     { label: 'Major', icon: '🥁' },
+            provost:   { label: 'Provost', icon: '🧑🏾‍✈️' },
+            pro:       { label: 'P.R.O.', icon: '📢' },
+            dos:       { label: 'D.O.S.', icon: '📸' },
+            gs:        { label: 'General Secretary', icon: '✍🏽' },
+            ags:       { label: 'A.G.S.', icon: '📝' },
+            brass:     { label: 'Chief Brass', icon: '🎺' },
+            bass:      { label: 'Chief Bass', icon: '💣' },
+            tenor:     { label: 'Chief Tenor', icon: '💯' }
         };
 
         // ============================================================
         // INAUGURAL DEFAULT LIST
         // ============================================================
         const INAUGURAL_DEFAULT = [
-            { name: 'Emmanuel Andrew (President)', batch: '21A' },
-            { name: 'Ojebode Funmilayo Bimpe (Vice President Admin)', batch: '17B' },
-            { name: 'Okewuyi Chris (Vice President Special Duties)', batch: '22A' },
-            { name: 'Victor Akinsanya (General Secretary)', batch: '22A' },
-            { name: 'Ubong Inyang (Provost Marshal)', batch: '19A' },
-            { name: 'Wisdom Oludare (Public Relations Officer)', batch: '21C' },
-            { name: 'Adekeye Joy (Welfare Officer 1)', batch: '21A' },
-            { name: 'Afolayan Deborah (Welfare Officer 2)', batch: '22C' },
-            { name: 'Williams Shalom (Music Director)', batch: '19A' },
-            { name: 'Akporero Daniel (Director Of Socials)', batch: '21C' },
-            { name: 'Mariam Busayo (Treasurer)', batch: '17B' },
-            { name: 'Onasanya Favor (Financial Secretary)', batch: '23C' }
+            { name: 'Emmanuel Andrew (President)', batch: '21A', photo: null },
+            { name: 'Ojebode Funmilayo Bimpe (Vice President Admin)', batch: '17B', photo: null },
+            { name: 'Okewuyi Chris (Vice President Special Duties)', batch: '22A', photo: null },
+            { name: 'Victor Akinsanya (General Secretary)', batch: '22A', photo: null },
+            { name: 'Ubong Inyang (Provost Marshal)', batch: '19A', photo: null },
+            { name: 'Wisdom Oludare (Public Relations Officer)', batch: '21C', photo: null },
+            { name: 'Adekeye Joy (Welfare Officer 1)', batch: '21A', photo: null },
+            { name: 'Afolayan Deborah (Welfare Officer 2)', batch: '22C', photo: null },
+            { name: 'Williams Shalom (Music Director)', batch: '19A', photo: null },
+            { name: 'Akporero Daniel (Director Of Socials)', batch: '21C', photo: null },
+            { name: 'Mariam Busayo (Treasurer)', batch: '17B', photo: null },
+            { name: 'Onasanya Favor (Financial Secretary)', batch: '23C', photo: null }
         ];
 
         // ============================================================
@@ -731,8 +867,14 @@
                 // Ensure executives.inaugural exists and is filled
                 if (!appData.executives) appData.executives = {};
                 if (!appData.executives.inaugural || appData.executives.inaugural.length === 0) {
-                    appData.executives.inaugural = INAUGURAL_DEFAULT;
+                    appData.executives.inaugural = JSON.parse(JSON.stringify(INAUGURAL_DEFAULT));
                     await saveAllData(appData);
+                } else {
+                    // Ensure every inaugural entry has a `photo` key (backwards compat)
+                    appData.executives.inaugural = appData.executives.inaugural.map(item => ({
+                        ...item,
+                        photo: item.photo || null
+                    }));
                 }
 
                 // Ensure customRoles exists
@@ -1002,7 +1144,7 @@
         };
 
         // ============================================================
-        // ABOUT PAGE EDITOR (with Anthem)
+        // ABOUT PAGE EDITOR
         // ============================================================
         function renderAboutEditor() {
             const about = appData.pages.about;
@@ -1086,7 +1228,6 @@
                     </div>
                     <button class="btn btn-primary" onclick="window.saveAboutCta()">Save CTA</button>
                 </div>
-                <!-- ===== GTMB ANTHEM CARD ===== -->
                 <div class="card">
                     <div class="card-title">GTMB Anthem</div>
                     <div class="form-group">
@@ -1198,7 +1339,7 @@
                 <div class="card">
                     <div class="card-title">Executive Management</div>
                     <p style="color:var(--color-text-muted);font-size:0.9rem;margin-bottom:12px;">
-                        Manage executives in the <strong>Executives</strong> section from the sidebar.
+                        Manage executives in the <strong>Executives</strong> section from the sidebar. Upload photos for the Inaugural Executives there.
                     </p>
                     <button class="btn btn-primary" onclick="window.navigateTo('executives')">Go to Executives →</button>
                 </div>
@@ -1605,7 +1746,7 @@
         };
 
         // ============================================================
-        // EXECUTIVES EDITOR (with Add Role feature)
+        // EXECUTIVES EDITOR (with Add Role + Photo upload for inaugural)
         // ============================================================
         function renderExecutivesEditor() {
             const allRoles = getAllRoles();
@@ -1635,10 +1776,16 @@
                         const isCustom = isCustomRole(role);
                         const roleInfo = allRoles[role];
                         const items = appData.executives[role] || [];
+                        const isInaugural = role === 'inaugural';
+
                         return `
                             <div class="executive-role-content ${role === activeExecRole ? 'active' : ''}" id="execRole_${role}">
                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                                    <h4 style="color:var(--color-white);font-size:1rem;">${roleInfo.icon} ${roleInfo.label} <span style="color:var(--color-text-muted);font-weight:400;font-size:0.85rem;">(${items.length})</span></h4>
+                                    <h4 style="color:var(--color-white);font-size:1rem;">
+                                        ${roleInfo.icon} ${roleInfo.label}
+                                        <span style="color:var(--color-text-muted);font-weight:400;font-size:0.85rem;">(${items.length})</span>
+                                        ${isInaugural ? '<span style="color:var(--color-accent);font-weight:400;font-size:0.75rem;margin-left:8px;">📷 Photos supported</span>' : ''}
+                                    </h4>
                                     ${isCustom ? `<button class="btn btn-danger btn-sm" onclick="window.deleteCustomRole('${role}')">🗑️ Delete Role</button>` : ''}
                                 </div>
                                 <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
@@ -1646,25 +1793,55 @@
                                     <input id="execNewBatch_${role}" placeholder="Batch (e.g. 15A)" style="width:110px;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:var(--color-white);" />
                                     <button class="btn btn-primary btn-sm" onclick="window.addExecutive('${role}')">➕ Add</button>
                                 </div>
-                                <div class="item-list">
-                                    ${items.length > 0 ? 
-                                        items.map((item, i) => `
-                                            <div class="item-row">
-                                                <div class="item-info">
-                                                    <div class="title">${escapeHtml(item.name)}</div>
-                                                    <div class="meta">${escapeHtml(item.batch)}</div>
+                                ${isInaugural ? renderInauguralList(items) : `
+                                    <div class="item-list">
+                                        ${items.length > 0 ? 
+                                            items.map((item, i) => `
+                                                <div class="item-row">
+                                                    <div class="item-info">
+                                                        <div class="title">${escapeHtml(item.name)}</div>
+                                                        <div class="meta">${escapeHtml(item.batch)}</div>
+                                                    </div>
+                                                    <div class="item-actions">
+                                                        <button class="btn btn-danger btn-sm" onclick="window.deleteExecutive('${role}', ${i})">🗑️</button>
+                                                    </div>
                                                 </div>
-                                                <div class="item-actions">
-                                                    <button class="btn btn-danger btn-sm" onclick="window.deleteExecutive('${role}', ${i})">🗑️</button>
-                                                </div>
-                                            </div>
-                                        `).join('') : 
-                                        '<div class="empty-state">No executives in this role yet.</div>'
-                                    }
-                                </div>
+                                            `).join('') : 
+                                            '<div class="empty-state">No executives in this role yet.</div>'
+                                        }
+                                    </div>
+                                `}
                             </div>
                         `;
                     }).join('')}
+                </div>
+            `;
+        }
+
+        // Render inaugural executives with photo thumbnails and upload buttons
+        function renderInauguralList(items) {
+            if (!items || items.length === 0) {
+                return '<div class="empty-state">No inaugural executives yet.</div>';
+            }
+            return `
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    ${items.map((item, i) => `
+                        <div class="photo-upload-inline">
+                            <div class="exec-photo-cell ${item.photo ? '' : 'no-photo'}">
+                                <img src="${item.photo || ''}" alt="${escapeHtml(item.name)}" onerror="this.parentElement.classList.add('no-photo'); this.style.display='none';" />
+                            </div>
+                            <div class="info">
+                                <div class="title">${escapeHtml(item.name)}</div>
+                                <div class="meta">${escapeHtml(item.batch)} ${item.photo ? '· 📷 Photo uploaded' : '· No photo'}</div>
+                            </div>
+                            <div class="photo-actions">
+                                <button class="upload-photo-label" onclick="window.openPhotoModal('inaugural', ${i})">
+                                    ${item.photo ? '🔄 Replace Photo' : '📷 Upload Photo'}
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="window.deleteExecutive('inaugural', ${i})">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             `;
         }
@@ -1682,19 +1859,17 @@
             document.getElementById('addRoleModal').classList.remove('active');
         };
 
-        // Close modal on overlay click
         document.getElementById('addRoleModal').addEventListener('click', function(e) {
             if (e.target === this) window.closeAddRoleModal();
         });
 
-        // Close modal on Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 window.closeAddRoleModal();
+                window.closePhotoModal();
             }
         });
 
-        // Auto-generate key from label
         document.getElementById('newRoleLabel').addEventListener('input', function() {
             const keyInput = document.getElementById('newRoleKey');
             if (!keyInput.dataset.touched) {
@@ -1719,35 +1894,29 @@
                 return;
             }
 
-            // Auto-generate key if empty
             if (!key) {
                 key = label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
             }
 
-            // Validate key
             if (!/^[a-z0-9_]+$/.test(key)) {
                 toast('Role key can only contain lowercase letters, numbers, and underscores.', true);
                 return;
             }
 
-            // Check for conflicts
             const allRoles = getAllRoles();
             if (allRoles[key]) {
                 toast('A role with this key already exists. Please choose a different key.', true);
                 return;
             }
 
-            // Save custom role
             if (!appData.customRoles) appData.customRoles = {};
             appData.customRoles[key] = { label, icon };
 
-            // Initialize executives array for this role
             if (!appData.executives[key]) appData.executives[key] = [];
 
             await saveAllData(appData);
             window.closeAddRoleModal();
 
-            // Switch to the new role
             activeExecRole = key;
             renderPage('executives');
             toast(`Role "${label}" added successfully!`);
@@ -1759,13 +1928,9 @@
 
             if (!confirm(`Delete the custom role "${role.label}"?\n\nAll executives in this role will also be removed.`)) return;
 
-            // Remove role definition
             delete appData.customRoles[roleKey];
-
-            // Remove executives for this role
             delete appData.executives[roleKey];
 
-            // If the active role was deleted, switch back to inaugural
             if (activeExecRole === roleKey) {
                 activeExecRole = 'inaugural';
             }
@@ -1790,7 +1955,10 @@
                 return;
             }
             if (!appData.executives[role]) appData.executives[role] = [];
-            appData.executives[role].push({ name, batch });
+            const newExec = { name, batch };
+            // Inaugural executives get a `photo` field (defaults to null)
+            if (role === 'inaugural') newExec.photo = null;
+            appData.executives[role].push(newExec);
             await updateExecutives(appData.executives);
             nameInput.value = '';
             batchInput.value = '';
@@ -1806,6 +1974,104 @@
                 renderPage('executives');
                 toast('Executive deleted!');
             }
+        };
+
+        // ============================================================
+        // PHOTO MODAL (for Inaugural Executives)
+        // ============================================================
+        window.openPhotoModal = function(role, index) {
+            photoModalRole = role;
+            photoModalIndex = index;
+            photoModalDataUrl = null;
+
+            const exec = appData.executives[role][index];
+            const modal = document.getElementById('photoModal');
+            const title = document.getElementById('photoModalTitle');
+            const preview = document.getElementById('photoModalPreview');
+            const previewImg = document.getElementById('photoModalPreviewImg');
+            const fileName = document.getElementById('photoModalFileName');
+            const removeBtn = document.getElementById('photoModalRemoveBtn');
+            const fileInput = document.getElementById('photoModalInput');
+
+            title.textContent = `📷 Photo for ${exec.name}`;
+            fileInput.value = '';
+            fileName.textContent = 'No file selected';
+
+            if (exec.photo) {
+                previewImg.src = exec.photo;
+                preview.classList.remove('no-photo');
+                previewImg.style.display = 'block';
+                fileName.textContent = '✅ Current photo loaded';
+                removeBtn.style.display = 'inline-flex';
+                photoModalDataUrl = exec.photo;
+            } else {
+                previewImg.src = '';
+                previewImg.style.display = 'none';
+                preview.classList.add('no-photo');
+                removeBtn.style.display = 'none';
+            }
+
+            modal.classList.add('active');
+        };
+
+        window.closePhotoModal = function() {
+            document.getElementById('photoModal').classList.remove('active');
+            photoModalRole = null;
+            photoModalIndex = -1;
+            photoModalDataUrl = null;
+        };
+
+        document.getElementById('photoModal').addEventListener('click', function(e) {
+            if (e.target === this) window.closePhotoModal();
+        });
+
+        window.handleModalPhotoUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                toast('File is too large. Please choose an image under 2MB.', true);
+                event.target.value = '';
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                toast('Please select an image file.', true);
+                event.target.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoModalDataUrl = e.target.result;
+                const preview = document.getElementById('photoModalPreview');
+                const previewImg = document.getElementById('photoModalPreviewImg');
+                previewImg.src = photoModalDataUrl;
+                previewImg.style.display = 'block';
+                preview.classList.remove('no-photo');
+                document.getElementById('photoModalFileName').textContent = '✅ ' + file.name;
+                document.getElementById('photoModalRemoveBtn').style.display = 'inline-flex';
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.removeModalPhoto = function() {
+            photoModalDataUrl = null;
+            document.getElementById('photoModalPreviewImg').src = '';
+            document.getElementById('photoModalPreviewImg').style.display = 'none';
+            document.getElementById('photoModalPreview').classList.add('no-photo');
+            document.getElementById('photoModalFileName').textContent = 'No file selected';
+            document.getElementById('photoModalInput').value = '';
+            document.getElementById('photoModalRemoveBtn').style.display = 'none';
+        };
+
+        window.saveModalPhoto = async function() {
+            if (photoModalRole === null || photoModalIndex < 0) return;
+            const exec = appData.executives[photoModalRole][photoModalIndex];
+            if (!exec) return;
+
+            exec.photo = photoModalDataUrl || null;
+            await updateExecutives(appData.executives);
+            window.closePhotoModal();
+            renderPage('executives');
+            toast(photoModalDataUrl ? 'Photo saved!' : 'Photo removed!');
         };
 
         // ============================================================
@@ -1954,7 +2220,7 @@
             if (!confirm('Really? All your custom data will be lost!')) return;
             appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
             if (!appData.executives) appData.executives = {};
-            appData.executives.inaugural = INAUGURAL_DEFAULT;
+            appData.executives.inaugural = JSON.parse(JSON.stringify(INAUGURAL_DEFAULT));
             appData.customRoles = {};
             await saveAllData(appData);
             activeExecRole = 'inaugural';
