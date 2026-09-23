@@ -1,5 +1,5 @@
 // ============================================================
-// GTMB - Firebase Script (Full Data + Auth + HTML Sanitizer)
+// GTMB - Firebase Script (Full Data + Auth + Storage + Sanitizer)
 // ============================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
@@ -26,9 +26,16 @@ import {
     onAuthStateChanged,
     signOut as firebaseSignOut
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+import {
+    getStorage,
+    ref as storageRef,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-storage.js";
 
 // ============================================================
-// FIREBASE CONFIG - REPLACE WITH YOUR OWN
+// FIREBASE CONFIG
 // ============================================================
 const firebaseConfig = {
     apiKey: "AIzaSyCQ8UCCkgFxoDU7_KRd8oAQrWdX3yNcqmk",
@@ -45,8 +52,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
-// Enable offline persistence
+// Enable offline persistence (Firestore only)
 try {
     await enableIndexedDbPersistence(db);
     console.log('🔥 Firestore persistence enabled');
@@ -57,7 +65,7 @@ try {
 // ============================================================
 // EXPORT INSTANCES
 // ============================================================
-export { app, db, auth };
+export { app, db, auth, storage };
 
 // ============================================================
 // DEFAULT EXECUTIVE ROLES (built-in, non-deletable)
@@ -152,7 +160,7 @@ export function showToast(message, isError = false) {
 }
 
 // ============================================================
-// AUTHENTICATION FUNCTIONS
+// AUTHENTICATION
 // ============================================================
 
 export async function signIn(email, password) {
@@ -222,6 +230,246 @@ export async function adminLogin(password) {
     } catch (error) {
         return false;
     }
+}
+
+// ============================================================
+// STORAGE — IMAGE UPLOAD / DELETE
+// ============================================================
+
+/**
+ * Upload an image file to Firebase Storage.
+ * @param {File} file - The file object from an <input type="file">
+ * @param {string} path - Storage path, e.g. "executives/inaugural/0"
+ * @returns {Promise<{success: boolean, url?: string, path?: string, error?: string}>}
+ */
+export async function uploadImage(file, path) {
+    if (!file) return { success: false, error: 'No file provided' };
+    if (!file.type.startsWith('image/')) {
+        return { success: false, error: 'Only image files are allowed' };
+    }
+    if (file.size > 2 * 1024 * 1024) {
+        return { success: false, error: 'File must be under 2MB' };
+    }
+    try {
+        // Add a timestamp so replacing a photo doesn't clash with the old one
+        const ext = file.name.split('.').pop() || 'jpg';
+        const filename = `${path}_${Date.now()}.${ext}`;
+        const fileRef = storageRef(storage, filename);
+
+        await uploadBytes(fileRef, file, { contentType: file.type });
+        const url = await getDownloadURL(fileRef);
+
+        return { success: true, url, path: filename };
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Delete a file from Firebase Storage by its full path.
+ * Silently ignores missing files.
+ */
+export async function deleteImage(path) {
+    if (!path) return { success: true };
+    try {
+        const fileRef = storageRef(storage, path);
+        await deleteObject(fileRef);
+        return { success: true };
+    } catch (error) {
+        if (error.code === 'storage/object-not-found') {
+            return { success: true };
+        }
+        console.error('Error deleting image:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Extract the storage path from a Firebase Storage download URL.
+ * Returns null if the URL doesn't look like a Firebase Storage URL.
+ */
+export function extractStoragePath(downloadUrl) {
+    if (!downloadUrl || typeof downloadUrl !== 'string') return null;
+    try {
+        const url = new URL(downloadUrl);
+        if (!url.hostname.includes('firebasestorage.googleapis.com')) return null;
+        const match = url.pathname.match(/\/o\/(.+)$/);
+        if (!match) return null;
+        return decodeURIComponent(match[1]);
+    } catch {
+        return null;
+    }
+}
+
+// ============================================================
+// PHOTO HELPERS (Inaugural Executives)
+// ============================================================
+
+/**
+ * Upload a new photo for an inaugural executive (by index), store its URL
+ * in Firestore, and delete the old photo file from Storage if any.
+ */
+export async function uploadInauguralPhoto(index, file) {
+    try {
+        const docRef = doc(db, 'executives', 'all');
+        const snap = await getDoc(docRef);
+        if (!snap.exists()) {
+            return { success: false, error: 'Executives doc not found' };
+        }
+        const execs = snap.data();
+        if (!execs.inaugural || !execs.inaugural[index]) {
+            return { success: false, error: 'Executive index out of range' };
+        }
+
+        // Upload new file to Storage
+        const uploadResult = await uploadImage(file, `executives/inaugural/${index}`);
+        if (!uploadResult.success) {
+            return { success: false, error: uploadResult.error };
+        }
+
+        // Delete old photo from Storage (if it was a Firebase URL)
+        const oldPhoto = execs.inaugural[index].photo;
+        const oldPath = extractStoragePath(oldPhoto);
+        if (oldPath) {
+            await deleteImage(oldPath);
+        }
+
+        // Update Firestore with new URL
+        execs.inaugural[index].photo = uploadResult.url;
+        await setDoc(docRef, execs);
+
+        return { success: true, url: uploadResult.url };
+    } catch (error) {
+        console.error('Error uploading inaugural photo:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Remove an inaugural executive's photo from Firestore and Storage.
+ */
+export async function removeInauguralPhoto(index) {
+    try {
+        const docRef = doc(db, 'executives', 'all');
+        const snap = await getDoc(docRef);
+        if (!snap.exists()) {
+            return { success: false, error: 'Executives doc not found' };
+        }
+        const execs = snap.data();
+        if (!execs.inaugural || !execs.inaugural[index]) {
+            return { success: false, error: 'Executive index out of range' };
+        }
+
+        // Delete file from Storage
+        const oldPhoto = execs.inaugural[index].photo;
+        const oldPath = extractStoragePath(oldPhoto);
+        if (oldPath) {
+            await deleteImage(oldPath);
+        }
+
+        // Clear the field in Firestore
+        execs.inaugural[index].photo = null;
+        await setDoc(docRef, execs);
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error removing inaugural photo:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Convenience: load only inaugural executives (with photos).
+ */
+export async function loadInauguralExecutives() {
+    try {
+        const docRef = doc(db, 'executives', 'all');
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+            const data = snap.data();
+            return (data.inaugural || []).map(item => ({
+                ...item,
+                photo: item.photo || null
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error loading inaugural executives:', error);
+        return [];
+    }
+}
+
+// ============================================================
+// CUSTOM ROLES
+// ============================================================
+
+export async function loadCustomRoles() {
+    try {
+        const ref = doc(db, 'config', 'customRoles');
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+            return snap.data().roles || {};
+        }
+        return {};
+    } catch (error) {
+        console.error('Error loading custom roles:', error);
+        return {};
+    }
+}
+
+export async function saveCustomRoles(customRoles) {
+    try {
+        const ref = doc(db, 'config', 'customRoles');
+        await setDoc(ref, { roles: customRoles || {} }, { merge: true });
+        return true;
+    } catch (error) {
+        console.error('Error saving custom roles:', error);
+        return false;
+    }
+}
+
+export async function addCustomRole(key, label, icon = '🏅') {
+    try {
+        const customRoles = await loadCustomRoles();
+        if (customRoles[key]) {
+            return { success: false, error: 'Role key already exists' };
+        }
+        customRoles[key] = { label, icon };
+        await saveCustomRoles(customRoles);
+        return { success: true, roles: customRoles };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function deleteCustomRole(key) {
+    try {
+        const customRoles = await loadCustomRoles();
+        if (!customRoles[key]) {
+            return { success: false, error: 'Role not found' };
+        }
+        delete customRoles[key];
+        await saveCustomRoles(customRoles);
+
+        const execRef = doc(db, 'executives', 'all');
+        const execSnap = await getDoc(execRef);
+        if (execSnap.exists()) {
+            const execs = execSnap.data();
+            if (execs[key]) {
+                delete execs[key];
+                await setDoc(execRef, execs);
+            }
+        }
+        return { success: true, roles: customRoles };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function getAllRoles() {
+    const customRoles = await loadCustomRoles();
+    return { ...DEFAULT_EXECUTIVE_ROLES, ...customRoles };
 }
 
 // ============================================================
@@ -358,197 +606,33 @@ We move as one in perfect harmony and sync`
 };
 
 // ============================================================
-// CUSTOM ROLES FUNCTIONS
-// ============================================================
-
-/**
- * Load custom roles from Firestore.
- * Stored at: config/customRoles → { roles: { key: { label, icon } } }
- * Returns {} if none exist yet.
- */
-export async function loadCustomRoles() {
-    try {
-        const ref = doc(db, 'config', 'customRoles');
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-            return snap.data().roles || {};
-        }
-        return {};
-    } catch (error) {
-        console.error('Error loading custom roles:', error);
-        return {};
-    }
-}
-
-/**
- * Save custom roles to Firestore.
- */
-export async function saveCustomRoles(customRoles) {
-    try {
-        const ref = doc(db, 'config', 'customRoles');
-        await setDoc(ref, { roles: customRoles || {} }, { merge: true });
-        return true;
-    } catch (error) {
-        console.error('Error saving custom roles:', error);
-        return false;
-    }
-}
-
-/**
- * Add a single custom role. Returns updated roles object.
- */
-export async function addCustomRole(key, label, icon = '🏅') {
-    try {
-        const customRoles = await loadCustomRoles();
-        if (customRoles[key]) {
-            return { success: false, error: 'Role key already exists' };
-        }
-        customRoles[key] = { label, icon };
-        await saveCustomRoles(customRoles);
-        return { success: true, roles: customRoles };
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
-}
-
-/**
- * Delete a custom role by key.
- */
-export async function deleteCustomRole(key) {
-    try {
-        const customRoles = await loadCustomRoles();
-        if (!customRoles[key]) {
-            return { success: false, error: 'Role not found' };
-        }
-        delete customRoles[key];
-        await saveCustomRoles(customRoles);
-
-        // Also remove executives stored for this role
-        const execRef = doc(db, 'executives', 'all');
-        const execSnap = await getDoc(execRef);
-        if (execSnap.exists()) {
-            const execs = execSnap.data();
-            if (execs[key]) {
-                delete execs[key];
-                await setDoc(execRef, execs);
-            }
-        }
-        return { success: true, roles: customRoles };
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
-}
-
-/**
- * Get all roles = defaults merged with custom roles.
- */
-export async function getAllRoles() {
-    const customRoles = await loadCustomRoles();
-    return { ...DEFAULT_EXECUTIVE_ROLES, ...customRoles };
-}
-
-// ============================================================
-// PHOTO HELPERS (for Inaugural Executives)
-// ============================================================
-
-/**
- * Update the photo for a single inaugural executive by index.
- * photoDataUrl can be a base64 data URL string, or null to remove.
- */
-export async function updateInauguralPhoto(index, photoDataUrl) {
-    try {
-        const docRef = doc(db, 'executives', 'all');
-        const snap = await getDoc(docRef);
-        if (!snap.exists()) {
-            return { success: false, error: 'Executives doc not found' };
-        }
-        const execs = snap.data();
-        if (!execs.inaugural || !execs.inaugural[index]) {
-            return { success: false, error: 'Executive index out of range' };
-        }
-        execs.inaugural[index].photo = photoDataUrl || null;
-        await setDoc(docRef, execs);
-        return { success: true };
-    } catch (error) {
-        console.error('Error updating inaugural photo:', error);
-        return { success: false, error: error.message };
-    }
-}
-
-/**
- * Convenience: load only inaugural executives (with photos).
- */
-export async function loadInauguralExecutives() {
-    try {
-        const docRef = doc(db, 'executives', 'all');
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-            const data = snap.data();
-            return (data.inaugural || []).map(item => ({
-                ...item,
-                photo: item.photo || null
-            }));
-        }
-        return [];
-    } catch (error) {
-        console.error('Error loading inaugural executives:', error);
-        return [];
-    }
-}
-
-// ============================================================
-// DATA LOADING FUNCTIONS
+// DATA LOADING
 // ============================================================
 
 export async function loadAllData() {
     try {
-        const data = {
-            pages: {},
-            trivia: [],
-            executives: {},
-            customRoles: {},
-            settings: {}
-        };
+        const data = { pages: {}, trivia: [], executives: {}, customRoles: {}, settings: {} };
 
-        // Load pages
-        const pagesRef = collection(db, 'pages');
-        const pagesSnapshot = await getDocs(pagesRef);
-        pagesSnapshot.forEach(doc => {
-            data.pages[doc.id] = doc.data();
-        });
+        const pagesSnapshot = await getDocs(collection(db, 'pages'));
+        pagesSnapshot.forEach(doc => { data.pages[doc.id] = doc.data(); });
 
-        // Load trivia
-        const triviaRef = collection(db, 'trivia');
-        const triviaSnapshot = await getDocs(query(triviaRef, orderBy('id')));
-        triviaSnapshot.forEach(doc => {
-            data.trivia.push(doc.data());
-        });
+        const triviaSnapshot = await getDocs(query(collection(db, 'trivia'), orderBy('id')));
+        triviaSnapshot.forEach(doc => { data.trivia.push(doc.data()); });
 
-        // Load executives
         const execDoc = await getDoc(doc(db, 'executives', 'all'));
-        if (execDoc.exists()) {
-            data.executives = execDoc.data();
-        }
+        if (execDoc.exists()) data.executives = execDoc.data();
 
-        // Ensure every inaugural entry has a `photo` field (backwards compat)
         if (data.executives.inaugural && Array.isArray(data.executives.inaugural)) {
             data.executives.inaugural = data.executives.inaugural.map(item => ({
-                ...item,
-                photo: item.photo || null
+                ...item, photo: item.photo || null
             }));
         }
 
-        // Load custom roles
         const customRolesDoc = await getDoc(doc(db, 'config', 'customRoles'));
-        if (customRolesDoc.exists()) {
-            data.customRoles = customRolesDoc.data().roles || {};
-        }
+        if (customRolesDoc.exists()) data.customRoles = customRolesDoc.data().roles || {};
 
-        // Load settings
         const settingsDoc = await getDoc(doc(db, 'settings', 'admin'));
-        if (settingsDoc.exists()) {
-            data.settings = settingsDoc.data();
-        }
+        if (settingsDoc.exists()) data.settings = settingsDoc.data();
 
         return mergeWithDefaults(data);
     } catch (error) {
@@ -559,11 +643,8 @@ export async function loadAllData() {
 
 export async function loadPage(pageName) {
     try {
-        const docRef = doc(db, 'pages', pageName);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            return docSnap.data();
-        }
+        const docSnap = await getDoc(doc(db, 'pages', pageName));
+        if (docSnap.exists()) return docSnap.data();
         return DEFAULT_DATA.pages[pageName] || null;
     } catch (error) {
         console.error(`Error loading page ${pageName}:`, error);
@@ -573,12 +654,9 @@ export async function loadPage(pageName) {
 
 export async function loadTrivia() {
     try {
-        const triviaRef = collection(db, 'trivia');
-        const snapshot = await getDocs(query(triviaRef, orderBy('id')));
+        const snapshot = await getDocs(query(collection(db, 'trivia'), orderBy('id')));
         const trivia = [];
-        snapshot.forEach(doc => {
-            trivia.push(doc.data());
-        });
+        snapshot.forEach(doc => trivia.push(doc.data()));
         return trivia.length > 0 ? trivia : DEFAULT_DATA.trivia;
     } catch (error) {
         console.error('Error loading trivia:', error);
@@ -588,15 +666,12 @@ export async function loadTrivia() {
 
 export async function loadExecutives() {
     try {
-        const docRef = doc(db, 'executives', 'all');
-        const docSnap = await getDoc(docRef);
+        const docSnap = await getDoc(doc(db, 'executives', 'all'));
         if (docSnap.exists()) {
             const data = docSnap.data();
-            // Ensure every inaugural entry has a `photo` field
             if (data.inaugural && Array.isArray(data.inaugural)) {
                 data.inaugural = data.inaugural.map(item => ({
-                    ...item,
-                    photo: item.photo || null
+                    ...item, photo: item.photo || null
                 }));
             }
             return data;
@@ -610,11 +685,8 @@ export async function loadExecutives() {
 
 export async function loadSettings() {
     try {
-        const docRef = doc(db, 'settings', 'admin');
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            return docSnap.data();
-        }
+        const docSnap = await getDoc(doc(db, 'settings', 'admin'));
+        if (docSnap.exists()) return docSnap.data();
         return { password: 'admin123' };
     } catch (error) {
         console.error('Error loading settings:', error);
@@ -623,40 +695,27 @@ export async function loadSettings() {
 }
 
 // ============================================================
-// DATA SAVING FUNCTIONS
+// DATA SAVING
 // ============================================================
 
 export async function saveAllData(data) {
     try {
         const batch = writeBatch(db);
 
-        // Save pages
         for (const [pageName, pageData] of Object.entries(data.pages)) {
-            const docRef = doc(db, 'pages', pageName);
-            batch.set(docRef, pageData, { merge: true });
+            batch.set(doc(db, 'pages', pageName), pageData, { merge: true });
         }
 
-        // Save trivia — clear and re-add
         const triviaRef = collection(db, 'trivia');
         const snapshot = await getDocs(triviaRef);
         snapshot.forEach(doc => batch.delete(doc.ref));
-
         for (const item of data.trivia) {
-            const newDocRef = doc(triviaRef);
-            batch.set(newDocRef, item);
+            batch.set(doc(triviaRef), item);
         }
 
-        // Save executives
-        const execRef = doc(db, 'executives', 'all');
-        batch.set(execRef, data.executives || {});
-
-        // Save custom roles
-        const customRolesRef = doc(db, 'config', 'customRoles');
-        batch.set(customRolesRef, { roles: data.customRoles || {} }, { merge: true });
-
-        // Save settings
-        const settingsRef = doc(db, 'settings', 'admin');
-        batch.set(settingsRef, data.settings, { merge: true });
+        batch.set(doc(db, 'executives', 'all'), data.executives || {});
+        batch.set(doc(db, 'config', 'customRoles'), { roles: data.customRoles || {} }, { merge: true });
+        batch.set(doc(db, 'settings', 'admin'), data.settings, { merge: true });
 
         await batch.commit();
         return true;
@@ -668,8 +727,7 @@ export async function saveAllData(data) {
 
 export async function savePage(pageName, pageData) {
     try {
-        const docRef = doc(db, 'pages', pageName);
-        await setDoc(docRef, pageData, { merge: true });
+        await setDoc(doc(db, 'pages', pageName), pageData, { merge: true });
         return true;
     } catch (error) {
         console.error(`Error saving page ${pageName}:`, error);
@@ -687,7 +745,7 @@ export async function addTriviaItem(question, answer) {
             if (data.id && data.id > maxId) maxId = data.id;
         });
         const newId = maxId + 1;
-        const docRef = await addDoc(triviaRef, { id: newId, question, answer });
+        await addDoc(triviaRef, { id: newId, question, answer });
         return { id: newId, question, answer };
     } catch (error) {
         console.error('Error adding trivia:', error);
@@ -700,8 +758,7 @@ export async function deleteTriviaItem(questionId) {
         const triviaRef = collection(db, 'trivia');
         const snapshot = await getDocs(triviaRef);
         for (const docSnap of snapshot.docs) {
-            const data = docSnap.data();
-            if (data.id === questionId) {
+            if (docSnap.data().id === questionId) {
                 await deleteDoc(docSnap.ref);
                 return true;
             }
@@ -715,8 +772,7 @@ export async function deleteTriviaItem(questionId) {
 
 export async function updateExecutives(executivesData) {
     try {
-        const docRef = doc(db, 'executives', 'all');
-        await setDoc(docRef, executivesData);
+        await setDoc(doc(db, 'executives', 'all'), executivesData);
         return true;
     } catch (error) {
         console.error('Error updating executives:', error);
@@ -726,8 +782,7 @@ export async function updateExecutives(executivesData) {
 
 export async function updatePassword(newPassword) {
     try {
-        const docRef = doc(db, 'settings', 'admin');
-        await setDoc(docRef, { password: newPassword }, { merge: true });
+        await setDoc(doc(db, 'settings', 'admin'), { password: newPassword }, { merge: true });
         return true;
     } catch (error) {
         console.error('Error updating password:', error);
@@ -740,19 +795,13 @@ export async function updatePassword(newPassword) {
 // ============================================================
 
 export function subscribeToPage(pageName, callback) {
-    const docRef = doc(db, 'pages', pageName);
-    return onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-            callback(docSnap.data());
-        } else {
-            callback(DEFAULT_DATA.pages[pageName] || null);
-        }
+    return onSnapshot(doc(db, 'pages', pageName), (docSnap) => {
+        callback(docSnap.exists() ? docSnap.data() : (DEFAULT_DATA.pages[pageName] || null));
     });
 }
 
 export function subscribeToTrivia(callback) {
-    const triviaRef = collection(db, 'trivia');
-    return onSnapshot(query(triviaRef, orderBy('id')), (snapshot) => {
+    return onSnapshot(query(collection(db, 'trivia'), orderBy('id')), (snapshot) => {
         const trivia = [];
         snapshot.forEach(doc => trivia.push(doc.data()));
         callback(trivia);
@@ -760,15 +809,12 @@ export function subscribeToTrivia(callback) {
 }
 
 export function subscribeToExecutives(callback) {
-    const docRef = doc(db, 'executives', 'all');
-    return onSnapshot(docRef, (docSnap) => {
+    return onSnapshot(doc(db, 'executives', 'all'), (docSnap) => {
         if (docSnap.exists()) {
             const data = docSnap.data();
-            // Ensure inaugural photos default to null
             if (data.inaugural && Array.isArray(data.inaugural)) {
                 data.inaugural = data.inaugural.map(item => ({
-                    ...item,
-                    photo: item.photo || null
+                    ...item, photo: item.photo || null
                 }));
             }
             callback(data);
@@ -779,18 +825,13 @@ export function subscribeToExecutives(callback) {
 }
 
 export function subscribeToCustomRoles(callback) {
-    const docRef = doc(db, 'config', 'customRoles');
-    return onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-            callback(docSnap.data().roles || {});
-        } else {
-            callback({});
-        }
+    return onSnapshot(doc(db, 'config', 'customRoles'), (docSnap) => {
+        callback(docSnap.exists() ? (docSnap.data().roles || {}) : {});
     });
 }
 
 // ============================================================
-// MERGE FUNCTION
+// MERGE
 // ============================================================
 function mergeWithDefaults(data) {
     const merged = {
@@ -800,36 +841,35 @@ function mergeWithDefaults(data) {
         customRoles: { ...(data.customRoles || {}) },
         settings: { ...DEFAULT_DATA.settings, ...data.settings }
     };
-    // Ensure all default executive roles exist
     for (const role of Object.keys(DEFAULT_DATA.executives)) {
         if (!merged.executives[role]) merged.executives[role] = [];
     }
-    // Ensure custom roles have executive arrays
     for (const roleKey of Object.keys(merged.customRoles)) {
         if (!merged.executives[roleKey]) merged.executives[roleKey] = [];
     }
-    // Ensure every inaugural entry has a `photo` field
     if (Array.isArray(merged.executives.inaugural)) {
         merged.executives.inaugural = merged.executives.inaugural.map(item => ({
-            ...item,
-            photo: item.photo || null
+            ...item, photo: item.photo || null
         }));
     }
     return merged;
 }
 
 // ============================================================
-// EXPORT DEFAULT
+// DEFAULT EXPORT
 // ============================================================
 export default {
-    app, db, auth,
+    app, db, auth, storage,
     signIn, signOut, getCurrentUser, isAdmin, createAdminUser, onAuthChange,
     adminLogin,
     loadAllData, loadPage, loadTrivia, loadExecutives, loadSettings,
     loadCustomRoles, getAllRoles, loadInauguralExecutives,
     saveAllData, savePage, addTriviaItem, deleteTriviaItem,
-    updateExecutives, updatePassword, updateInauguralPhoto,
+    updateExecutives, updatePassword,
     addCustomRole, deleteCustomRole, saveCustomRoles,
+    // Storage / photo helpers
+    uploadImage, deleteImage, extractStoragePath,
+    uploadInauguralPhoto, removeInauguralPhoto,
     subscribeToPage, subscribeToTrivia, subscribeToExecutives, subscribeToCustomRoles,
     escapeHtml, sanitizeHtml, showToast,
     DEFAULT_DATA, DEFAULT_EXECUTIVE_ROLES
