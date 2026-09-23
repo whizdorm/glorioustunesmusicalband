@@ -351,7 +351,7 @@ We move as one in perfect harmony and sync`
         tenor: [],
         inaugural: []
     },
-    customRoles: {},   // <-- NEW: stores user-created roles
+    customRoles: {},
     settings: {
         password: 'admin123'
     }
@@ -448,6 +448,55 @@ export async function getAllRoles() {
 }
 
 // ============================================================
+// PHOTO HELPERS (for Inaugural Executives)
+// ============================================================
+
+/**
+ * Update the photo for a single inaugural executive by index.
+ * photoDataUrl can be a base64 data URL string, or null to remove.
+ */
+export async function updateInauguralPhoto(index, photoDataUrl) {
+    try {
+        const docRef = doc(db, 'executives', 'all');
+        const snap = await getDoc(docRef);
+        if (!snap.exists()) {
+            return { success: false, error: 'Executives doc not found' };
+        }
+        const execs = snap.data();
+        if (!execs.inaugural || !execs.inaugural[index]) {
+            return { success: false, error: 'Executive index out of range' };
+        }
+        execs.inaugural[index].photo = photoDataUrl || null;
+        await setDoc(docRef, execs);
+        return { success: true };
+    } catch (error) {
+        console.error('Error updating inaugural photo:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Convenience: load only inaugural executives (with photos).
+ */
+export async function loadInauguralExecutives() {
+    try {
+        const docRef = doc(db, 'executives', 'all');
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+            const data = snap.data();
+            return (data.inaugural || []).map(item => ({
+                ...item,
+                photo: item.photo || null
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Error loading inaugural executives:', error);
+        return [];
+    }
+}
+
+// ============================================================
 // DATA LOADING FUNCTIONS
 // ============================================================
 
@@ -479,6 +528,14 @@ export async function loadAllData() {
         const execDoc = await getDoc(doc(db, 'executives', 'all'));
         if (execDoc.exists()) {
             data.executives = execDoc.data();
+        }
+
+        // Ensure every inaugural entry has a `photo` field (backwards compat)
+        if (data.executives.inaugural && Array.isArray(data.executives.inaugural)) {
+            data.executives.inaugural = data.executives.inaugural.map(item => ({
+                ...item,
+                photo: item.photo || null
+            }));
         }
 
         // Load custom roles
@@ -534,7 +591,15 @@ export async function loadExecutives() {
         const docRef = doc(db, 'executives', 'all');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            return docSnap.data();
+            const data = docSnap.data();
+            // Ensure every inaugural entry has a `photo` field
+            if (data.inaugural && Array.isArray(data.inaugural)) {
+                data.inaugural = data.inaugural.map(item => ({
+                    ...item,
+                    photo: item.photo || null
+                }));
+            }
+            return data;
         }
         return DEFAULT_DATA.executives;
     } catch (error) {
@@ -698,7 +763,15 @@ export function subscribeToExecutives(callback) {
     const docRef = doc(db, 'executives', 'all');
     return onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
-            callback(docSnap.data());
+            const data = docSnap.data();
+            // Ensure inaugural photos default to null
+            if (data.inaugural && Array.isArray(data.inaugural)) {
+                data.inaugural = data.inaugural.map(item => ({
+                    ...item,
+                    photo: item.photo || null
+                }));
+            }
+            callback(data);
         } else {
             callback(DEFAULT_DATA.executives);
         }
@@ -735,6 +808,13 @@ function mergeWithDefaults(data) {
     for (const roleKey of Object.keys(merged.customRoles)) {
         if (!merged.executives[roleKey]) merged.executives[roleKey] = [];
     }
+    // Ensure every inaugural entry has a `photo` field
+    if (Array.isArray(merged.executives.inaugural)) {
+        merged.executives.inaugural = merged.executives.inaugural.map(item => ({
+            ...item,
+            photo: item.photo || null
+        }));
+    }
     return merged;
 }
 
@@ -746,9 +826,9 @@ export default {
     signIn, signOut, getCurrentUser, isAdmin, createAdminUser, onAuthChange,
     adminLogin,
     loadAllData, loadPage, loadTrivia, loadExecutives, loadSettings,
-    loadCustomRoles, getAllRoles,
+    loadCustomRoles, getAllRoles, loadInauguralExecutives,
     saveAllData, savePage, addTriviaItem, deleteTriviaItem,
-    updateExecutives, updatePassword,
+    updateExecutives, updatePassword, updateInauguralPhoto,
     addCustomRole, deleteCustomRole, saveCustomRoles,
     subscribeToPage, subscribeToTrivia, subscribeToExecutives, subscribeToCustomRoles,
     escapeHtml, sanitizeHtml, showToast,
