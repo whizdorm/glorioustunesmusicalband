@@ -1,5 +1,5 @@
 // ============================================================
-// GTMB - Firebase Script (Full Data + Auth + Storage + Sanitizer)
+// GTMB - Firebase + Cloudinary Script (Full Data + Auth + Media)
 // ============================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
@@ -26,13 +26,6 @@ import {
     onAuthStateChanged,
     signOut as firebaseSignOut
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-import {
-    getStorage,
-    ref as storageRef,
-    uploadBytes,
-    getDownloadURL,
-    deleteObject
-} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-storage.js";
 
 // ============================================================
 // FIREBASE CONFIG
@@ -47,9 +40,17 @@ const firebaseConfig = {
 };
 
 // ============================================================
+// CLOUDINARY CONFIG
+// 👇 REPLACE THESE WITH YOUR ACTUAL VALUES FROM CLOUDINARY
+// ============================================================
+const CLOUDINARY_CLOUD_NAME = 'kxjo6bh6';       // e.g. 'dxxxxxx'
+const CLOUDINARY_UPLOAD_PRESET = 'gtmb_unsigned';           // your unsigned preset name
+const CLOUDINARY_FOLDER = 'executives';                     // folder inside Cloudinary
+
+// ============================================================
 // INITIALIZE FIREBASE (each service guarded independently)
 // ============================================================
-let app, db, auth, storage;
+let app, db, auth;
 
 try {
     app = initializeApp(firebaseConfig);
@@ -69,13 +70,6 @@ try {
     console.error('❌ Failed to initialize Auth:', err);
 }
 
-try {
-    storage = getStorage(app);
-} catch (err) {
-    console.warn('⚠️ Failed to initialize Storage (photos will be disabled):', err);
-    storage = null;
-}
-
 // Enable offline persistence — non-blocking, non-fatal
 (async () => {
     if (!db) return;
@@ -90,7 +84,7 @@ try {
 // ============================================================
 // EXPORT INSTANCES
 // ============================================================
-export { app, db, auth, storage };
+export { app, db, auth };
 
 // ============================================================
 // DEFAULT EXECUTIVE ROLES (built-in, non-deletable)
@@ -181,6 +175,15 @@ export function showToast(message, isError = false) {
     }, 3000);
 }
 
+/** Sanitize a string for use as a Cloudinary public_id segment */
+function sanitizePathSegment(str) {
+    return String(str || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 60) || 'file';
+}
+
 // ============================================================
 // AUTHENTICATION
 // ============================================================
@@ -264,30 +267,16 @@ export async function adminLogin(password) {
 }
 
 // ============================================================
-// STORAGE — IMAGE UPLOAD / DELETE
+// CLOUDINARY — IMAGE UPLOAD / DELETE
 // ============================================================
 
 /**
- * Sanitize a string so it's safe as a storage path segment.
- */
-function sanitizePathSegment(str) {
-    return String(str || '')
-        .toLowerCase()
-        .replace(/[^a-z0-9._-]+/g, '_')
-        .replace(/^_+|_+$/g, '')
-        .slice(0, 60) || 'file';
-}
-
-/**
- * Upload an image file to Firebase Storage.
+ * Upload an image file to Cloudinary.
  * @param {File} file
- * @param {string} basePath - path prefix WITHOUT extension or timestamp, e.g. "executives/inaugural/emmanuel_andrew"
+ * @param {string} basePath - base name for the public_id, e.g. "emmanuel_andrew"
  * @returns {Promise<{success, url?, path?, error?}>}
  */
 export async function uploadImage(file, basePath) {
-    if (!storage) {
-        return { success: false, error: 'Storage not initialized. Enable it in Firebase Console (requires Blaze plan).' };
-    }
     if (!file) return { success: false, error: 'No file provided' };
     if (!file.type.startsWith('image/')) {
         return { success: false, error: 'Only image files are allowed' };
@@ -295,55 +284,76 @@ export async function uploadImage(file, basePath) {
     if (file.size > 2 * 1024 * 1024) {
         return { success: false, error: 'File must be under 2MB' };
     }
+
+    if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'YOUR_CLOUD_NAME_HERE') {
+        return {
+            success: false,
+            error: 'Cloudinary cloud name not configured. Update CLOUDINARY_CLOUD_NAME in script.js.'
+        };
+    }
+
     try {
-        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-        const safeBase = sanitizePathSegment(basePath);
-        const filename = `${safeBase}_${Date.now()}.${ext}`;
-        const fileRef = storageRef(storage, filename);
+        const publicId = `${CLOUDINARY_FOLDER}/${sanitizePathSegment(basePath)}_${Date.now()}`;
 
-        console.log('📤 Uploading to Storage:', filename, '(', (file.size/1024).toFixed(1), 'KB )');
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        formData.append('public_id', publicId);
 
-        await uploadBytes(fileRef, file, { contentType: file.type });
-        const url = await getDownloadURL(fileRef);
+        console.log('📤 Uploading to Cloudinary:', publicId, '(', (file.size/1024).toFixed(1), 'KB )');
 
-        console.log('✅ Upload complete:', url);
-        return { success: true, url, path: filename };
+        const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+            { method: 'POST', body: formData }
+        );
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error('❌ Cloudinary HTTP error:', response.status, errText);
+            return { success: false, error: `Cloudinary error ${response.status}: ${errText}` };
+        }
+
+        const data = await response.json();
+        console.log('✅ Cloudinary upload complete:', data.secure_url);
+
+        return {
+            success: true,
+            url: data.secure_url,           // HTTPS URL — store this in Firestore
+            path: data.public_id             // For reference; can't delete client-side
+        };
     } catch (error) {
-        console.error('❌ Error uploading image:', error?.code, error?.message);
-        return { success: false, error: `${error?.code || 'error'}: ${error?.message || 'Unknown error'}` };
+        console.error('❌ Cloudinary upload failed:', error);
+        return { success: false, error: error.message || 'Unknown error' };
     }
 }
 
 /**
- * Delete a file from Firebase Storage by its full path.
+ * Cloudinary unsigned uploads CANNOT delete files client-side.
+ * This is a no-op that logs a warning — old files remain in your
+ * Cloudinary library. Clean them up manually from the Media Library.
  */
 export async function deleteImage(path) {
-    if (!storage || !path) return { success: true };
-    try {
-        const fileRef = storageRef(storage, path);
-        await deleteObject(fileRef);
-        console.log('🗑️ Deleted from Storage:', path);
-        return { success: true };
-    } catch (error) {
-        if (error.code === 'storage/object-not-found') {
-            return { success: true };
-        }
-        console.error('Error deleting image:', error);
-        return { success: false, error: error.message };
-    }
+    if (!path) return { success: true };
+    console.warn('⚠️ Cloudinary delete skipped (unsigned upload). Old file remains:', path);
+    return { success: true };
 }
 
 /**
- * Extract the storage path from a Firebase Storage download URL.
+ * Detect if a URL is a Cloudinary URL (used for compatibility with old Firebase URLs).
  */
 export function extractStoragePath(downloadUrl) {
     if (!downloadUrl || typeof downloadUrl !== 'string') return null;
     try {
         const url = new URL(downloadUrl);
-        if (!url.hostname.includes('firebasestorage.googleapis.com')) return null;
-        const match = url.pathname.match(/\/o\/(.+)$/);
-        if (!match) return null;
-        return decodeURIComponent(match[1]);
+        if (url.hostname.includes('res.cloudinary.com')) {
+            // Extract public_id from pathname like /cloud/image/upload/v123/executives/xyz.jpg
+            const parts = url.pathname.split('/upload/');
+            if (parts[1]) {
+                // Strip version prefix like "v1699123456/"
+                return parts[1].replace(/^v\d+\//, '');
+            }
+        }
+        return null;
     } catch {
         return null;
     }
@@ -355,11 +365,10 @@ export function extractStoragePath(downloadUrl) {
 
 /**
  * Upload a new photo for an inaugural executive (by index) and store its URL.
- * Uses a name-based storage path so reordering won't collide.
+ * Old Cloudinary file is left orphaned (unsigned upload limitation).
  */
 export async function uploadInauguralPhoto(index, file) {
     if (!db) return { success: false, error: 'Firestore not initialized' };
-    if (!storage) return { success: false, error: 'Storage not initialized' };
 
     try {
         const docRef = doc(db, 'executives', 'all');
@@ -373,42 +382,28 @@ export async function uploadInauguralPhoto(index, file) {
         }
 
         const exec = execs.inaugural[index];
+        const basePath = sanitizePathSegment(exec.name || `exec_${index}`);
 
-        // Build a stable path from the executive's name (not index)
-        // e.g. "executives/inaugural/emmanuel_andrew" → "executives/inaugural/emmanuel_andrew_1699...jpg"
-        const basePath = `executives/inaugural/${sanitizePathSegment(exec.name || `exec_${index}`)}`;
-
-        // 1. Upload new file
+        // 1. Upload new file to Cloudinary
         const uploadResult = await uploadImage(file, basePath);
         if (!uploadResult.success) {
             return { success: false, error: uploadResult.error };
         }
 
-        // 2. Delete old photo (if any) — only after new one succeeded
-        const oldPhoto = exec.photo;
-        const oldPath = extractStoragePath(oldPhoto);
-        if (oldPath && oldPath !== uploadResult.path) {
-            try {
-                await deleteImage(oldPath);
-            } catch (err) {
-                // Non-fatal — new photo is already uploaded
-                console.warn('Old photo cleanup failed (non-fatal):', err);
-            }
-        }
-
-        // 3. Update Firestore with new URL
+        // 2. Update Firestore with new URL
         exec.photo = uploadResult.url;
         await setDoc(docRef, execs);
 
         return { success: true, url: uploadResult.url };
     } catch (error) {
         console.error('❌ Error uploading inaugural photo:', error);
-        return { success: false, error: `${error?.code || 'error'}: ${error?.message || 'Unknown error'}` };
+        return { success: false, error: error.message || 'Unknown error' };
     }
 }
 
 /**
- * Remove an inaugural executive's photo from Firestore and Storage.
+ * Remove an inaugural executive's photo URL from Firestore.
+ * (Cloudinary file stays in your library — clean up manually.)
  */
 export async function removeInauguralPhoto(index) {
     if (!db) return { success: false, error: 'Firestore not initialized' };
@@ -425,19 +420,13 @@ export async function removeInauguralPhoto(index) {
 
         const oldPhoto = execs.inaugural[index].photo;
         const oldPath = extractStoragePath(oldPhoto);
+        if (oldPath) {
+            console.warn('⚠️ Cloudinary file will remain in your library:', oldPath);
+        }
 
-        // Clear Firestore first so the UI shows "no photo" even if Storage deletion fails
+        // Clear Firestore field
         execs.inaugural[index].photo = null;
         await setDoc(docRef, execs);
-
-        // Then clean up Storage (non-fatal)
-        if (oldPath) {
-            try {
-                await deleteImage(oldPath);
-            } catch (err) {
-                console.warn('Photo record cleared but file deletion failed:', err);
-            }
-        }
 
         return { success: true };
     } catch (error) {
@@ -957,7 +946,7 @@ function mergeWithDefaults(data) {
 // DEFAULT EXPORT
 // ============================================================
 export default {
-    app, db, auth, storage,
+    app, db, auth,
     signIn, signOut, getCurrentUser, isAdmin, createAdminUser, onAuthChange,
     adminLogin,
     loadAllData, loadPage, loadTrivia, loadExecutives, loadSettings,
