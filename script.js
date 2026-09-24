@@ -47,20 +47,45 @@ const firebaseConfig = {
 };
 
 // ============================================================
-// INITIALIZE FIREBASE
+// INITIALIZE FIREBASE (each service guarded independently)
 // ============================================================
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
+let app, db, auth, storage;
 
-// Enable offline persistence (Firestore only)
 try {
-    await enableIndexedDbPersistence(db);
-    console.log('🔥 Firestore persistence enabled');
+    app = initializeApp(firebaseConfig);
 } catch (err) {
-    console.warn('⚠️ Persistence not available:', err);
+    console.error('❌ Failed to initialize Firebase app:', err);
 }
+
+try {
+    db = getFirestore(app);
+} catch (err) {
+    console.error('❌ Failed to initialize Firestore:', err);
+}
+
+try {
+    auth = getAuth(app);
+} catch (err) {
+    console.error('❌ Failed to initialize Auth:', err);
+}
+
+try {
+    storage = getStorage(app);
+} catch (err) {
+    console.warn('⚠️ Failed to initialize Storage (photos will be disabled):', err);
+    storage = null;
+}
+
+// Enable offline persistence — non-blocking, non-fatal
+(async () => {
+    if (!db) return;
+    try {
+        await enableIndexedDbPersistence(db);
+        console.log('🔥 Firestore persistence enabled');
+    } catch (err) {
+        console.warn('⚠️ Firestore persistence not available:', err?.code || err);
+    }
+})();
 
 // ============================================================
 // EXPORT INSTANCES
@@ -96,7 +121,7 @@ export function escapeHtml(text) {
     return div.innerHTML;
 }
 
-/** Sanitize HTML – allow only safe tags and attributes (for rich text) */
+/** Sanitize HTML – allow only safe tags and attributes */
 export function sanitizeHtml(html) {
     if (!html) return '';
     const allowedTags = [
@@ -105,10 +130,8 @@ export function sanitizeHtml(html) {
         'span', 'div', 'a', 'b', 'i', 'sub', 'sup',
         'blockquote', 'pre', 'code'
     ];
-
     const div = document.createElement('div');
     div.innerHTML = html;
-
     function sanitizeNode(node) {
         if (node.nodeType === Node.ELEMENT_NODE) {
             const tag = node.tagName.toLowerCase();
@@ -135,7 +158,6 @@ export function sanitizeHtml(html) {
             [...node.childNodes].forEach(child => sanitizeNode(child));
         }
     }
-
     [...div.childNodes].forEach(child => sanitizeNode(child));
     return div.innerHTML;
 }
@@ -164,29 +186,33 @@ export function showToast(message, isError = false) {
 // ============================================================
 
 export async function signIn(email, password) {
+    if (!auth) return { success: false, error: 'Auth not initialized' };
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         return { success: true, user: userCredential.user };
     } catch (error) {
+        console.error('Sign-in error:', error?.code, error?.message);
         return { success: false, error: error.message };
     }
 }
 
 export async function signOut() {
+    if (!auth) return false;
     try {
         await firebaseSignOut(auth);
         return true;
     } catch (error) {
+        console.error('Sign-out error:', error);
         return false;
     }
 }
 
 export function getCurrentUser() {
-    return auth.currentUser;
+    return auth ? auth.currentUser : null;
 }
 
 export async function isAdmin(user) {
-    if (!user) return false;
+    if (!user || !db) return false;
     try {
         const docRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(docRef);
@@ -201,6 +227,7 @@ export async function isAdmin(user) {
 }
 
 export async function createAdminUser(email, password) {
+    if (!auth || !db) return { success: false, error: 'Firebase not initialized' };
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, 'users', userCredential.user.uid), {
@@ -215,11 +242,15 @@ export async function createAdminUser(email, password) {
 }
 
 export function onAuthChange(callback) {
+    if (!auth) {
+        setTimeout(() => callback(null), 0);
+        return () => {};
+    }
     return onAuthStateChanged(auth, callback);
 }
 
-// Legacy password login (kept for fallback)
 export async function adminLogin(password) {
+    if (!db) return false;
     try {
         const settingsDoc = await getDoc(doc(db, 'settings', 'admin'));
         if (settingsDoc.exists() && settingsDoc.data().password === password) {
@@ -237,12 +268,26 @@ export async function adminLogin(password) {
 // ============================================================
 
 /**
- * Upload an image file to Firebase Storage.
- * @param {File} file - The file object from an <input type="file">
- * @param {string} path - Storage path, e.g. "executives/inaugural/0"
- * @returns {Promise<{success: boolean, url?: string, path?: string, error?: string}>}
+ * Sanitize a string so it's safe as a storage path segment.
  */
-export async function uploadImage(file, path) {
+function sanitizePathSegment(str) {
+    return String(str || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 60) || 'file';
+}
+
+/**
+ * Upload an image file to Firebase Storage.
+ * @param {File} file
+ * @param {string} basePath - path prefix WITHOUT extension or timestamp, e.g. "executives/inaugural/emmanuel_andrew"
+ * @returns {Promise<{success, url?, path?, error?}>}
+ */
+export async function uploadImage(file, basePath) {
+    if (!storage) {
+        return { success: false, error: 'Storage not initialized. Enable it in Firebase Console (requires Blaze plan).' };
+    }
     if (!file) return { success: false, error: 'No file provided' };
     if (!file.type.startsWith('image/')) {
         return { success: false, error: 'Only image files are allowed' };
@@ -251,30 +296,33 @@ export async function uploadImage(file, path) {
         return { success: false, error: 'File must be under 2MB' };
     }
     try {
-        // Add a timestamp so replacing a photo doesn't clash with the old one
-        const ext = file.name.split('.').pop() || 'jpg';
-        const filename = `${path}_${Date.now()}.${ext}`;
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const safeBase = sanitizePathSegment(basePath);
+        const filename = `${safeBase}_${Date.now()}.${ext}`;
         const fileRef = storageRef(storage, filename);
+
+        console.log('📤 Uploading to Storage:', filename, '(', (file.size/1024).toFixed(1), 'KB )');
 
         await uploadBytes(fileRef, file, { contentType: file.type });
         const url = await getDownloadURL(fileRef);
 
+        console.log('✅ Upload complete:', url);
         return { success: true, url, path: filename };
     } catch (error) {
-        console.error('Error uploading image:', error);
-        return { success: false, error: error.message };
+        console.error('❌ Error uploading image:', error?.code, error?.message);
+        return { success: false, error: `${error?.code || 'error'}: ${error?.message || 'Unknown error'}` };
     }
 }
 
 /**
  * Delete a file from Firebase Storage by its full path.
- * Silently ignores missing files.
  */
 export async function deleteImage(path) {
-    if (!path) return { success: true };
+    if (!storage || !path) return { success: true };
     try {
         const fileRef = storageRef(storage, path);
         await deleteObject(fileRef);
+        console.log('🗑️ Deleted from Storage:', path);
         return { success: true };
     } catch (error) {
         if (error.code === 'storage/object-not-found') {
@@ -287,7 +335,6 @@ export async function deleteImage(path) {
 
 /**
  * Extract the storage path from a Firebase Storage download URL.
- * Returns null if the URL doesn't look like a Firebase Storage URL.
  */
 export function extractStoragePath(downloadUrl) {
     if (!downloadUrl || typeof downloadUrl !== 'string') return null;
@@ -307,10 +354,13 @@ export function extractStoragePath(downloadUrl) {
 // ============================================================
 
 /**
- * Upload a new photo for an inaugural executive (by index), store its URL
- * in Firestore, and delete the old photo file from Storage if any.
+ * Upload a new photo for an inaugural executive (by index) and store its URL.
+ * Uses a name-based storage path so reordering won't collide.
  */
 export async function uploadInauguralPhoto(index, file) {
+    if (!db) return { success: false, error: 'Firestore not initialized' };
+    if (!storage) return { success: false, error: 'Storage not initialized' };
+
     try {
         const docRef = doc(db, 'executives', 'all');
         const snap = await getDoc(docRef);
@@ -322,27 +372,38 @@ export async function uploadInauguralPhoto(index, file) {
             return { success: false, error: 'Executive index out of range' };
         }
 
-        // Upload new file to Storage
-        const uploadResult = await uploadImage(file, `executives/inaugural/${index}`);
+        const exec = execs.inaugural[index];
+
+        // Build a stable path from the executive's name (not index)
+        // e.g. "executives/inaugural/emmanuel_andrew" → "executives/inaugural/emmanuel_andrew_1699...jpg"
+        const basePath = `executives/inaugural/${sanitizePathSegment(exec.name || `exec_${index}`)}`;
+
+        // 1. Upload new file
+        const uploadResult = await uploadImage(file, basePath);
         if (!uploadResult.success) {
             return { success: false, error: uploadResult.error };
         }
 
-        // Delete old photo from Storage (if it was a Firebase URL)
-        const oldPhoto = execs.inaugural[index].photo;
+        // 2. Delete old photo (if any) — only after new one succeeded
+        const oldPhoto = exec.photo;
         const oldPath = extractStoragePath(oldPhoto);
-        if (oldPath) {
-            await deleteImage(oldPath);
+        if (oldPath && oldPath !== uploadResult.path) {
+            try {
+                await deleteImage(oldPath);
+            } catch (err) {
+                // Non-fatal — new photo is already uploaded
+                console.warn('Old photo cleanup failed (non-fatal):', err);
+            }
         }
 
-        // Update Firestore with new URL
-        execs.inaugural[index].photo = uploadResult.url;
+        // 3. Update Firestore with new URL
+        exec.photo = uploadResult.url;
         await setDoc(docRef, execs);
 
         return { success: true, url: uploadResult.url };
     } catch (error) {
-        console.error('Error uploading inaugural photo:', error);
-        return { success: false, error: error.message };
+        console.error('❌ Error uploading inaugural photo:', error);
+        return { success: false, error: `${error?.code || 'error'}: ${error?.message || 'Unknown error'}` };
     }
 }
 
@@ -350,6 +411,7 @@ export async function uploadInauguralPhoto(index, file) {
  * Remove an inaugural executive's photo from Firestore and Storage.
  */
 export async function removeInauguralPhoto(index) {
+    if (!db) return { success: false, error: 'Firestore not initialized' };
     try {
         const docRef = doc(db, 'executives', 'all');
         const snap = await getDoc(docRef);
@@ -361,16 +423,21 @@ export async function removeInauguralPhoto(index) {
             return { success: false, error: 'Executive index out of range' };
         }
 
-        // Delete file from Storage
         const oldPhoto = execs.inaugural[index].photo;
         const oldPath = extractStoragePath(oldPhoto);
-        if (oldPath) {
-            await deleteImage(oldPath);
-        }
 
-        // Clear the field in Firestore
+        // Clear Firestore first so the UI shows "no photo" even if Storage deletion fails
         execs.inaugural[index].photo = null;
         await setDoc(docRef, execs);
+
+        // Then clean up Storage (non-fatal)
+        if (oldPath) {
+            try {
+                await deleteImage(oldPath);
+            } catch (err) {
+                console.warn('Photo record cleared but file deletion failed:', err);
+            }
+        }
 
         return { success: true };
     } catch (error) {
@@ -380,9 +447,10 @@ export async function removeInauguralPhoto(index) {
 }
 
 /**
- * Convenience: load only inaugural executives (with photos).
+ * Convenience: load only inaugural executives (with photos normalized).
  */
 export async function loadInauguralExecutives() {
+    if (!db) return [];
     try {
         const docRef = doc(db, 'executives', 'all');
         const snap = await getDoc(docRef);
@@ -405,6 +473,7 @@ export async function loadInauguralExecutives() {
 // ============================================================
 
 export async function loadCustomRoles() {
+    if (!db) return {};
     try {
         const ref = doc(db, 'config', 'customRoles');
         const snap = await getDoc(ref);
@@ -419,6 +488,7 @@ export async function loadCustomRoles() {
 }
 
 export async function saveCustomRoles(customRoles) {
+    if (!db) return false;
     try {
         const ref = doc(db, 'config', 'customRoles');
         await setDoc(ref, { roles: customRoles || {} }, { merge: true });
@@ -444,6 +514,7 @@ export async function addCustomRole(key, label, icon = '🏅') {
 }
 
 export async function deleteCustomRole(key) {
+    if (!db) return { success: false, error: 'Firestore not initialized' };
     try {
         const customRoles = await loadCustomRoles();
         if (!customRoles[key]) {
@@ -610,6 +681,7 @@ We move as one in perfect harmony and sync`
 // ============================================================
 
 export async function loadAllData() {
+    if (!db) return JSON.parse(JSON.stringify(DEFAULT_DATA));
     try {
         const data = { pages: {}, trivia: [], executives: {}, customRoles: {}, settings: {} };
 
@@ -642,6 +714,7 @@ export async function loadAllData() {
 }
 
 export async function loadPage(pageName) {
+    if (!db) return DEFAULT_DATA.pages[pageName] || null;
     try {
         const docSnap = await getDoc(doc(db, 'pages', pageName));
         if (docSnap.exists()) return docSnap.data();
@@ -653,6 +726,7 @@ export async function loadPage(pageName) {
 }
 
 export async function loadTrivia() {
+    if (!db) return DEFAULT_DATA.trivia;
     try {
         const snapshot = await getDocs(query(collection(db, 'trivia'), orderBy('id')));
         const trivia = [];
@@ -665,6 +739,7 @@ export async function loadTrivia() {
 }
 
 export async function loadExecutives() {
+    if (!db) return DEFAULT_DATA.executives;
     try {
         const docSnap = await getDoc(doc(db, 'executives', 'all'));
         if (docSnap.exists()) {
@@ -684,6 +759,7 @@ export async function loadExecutives() {
 }
 
 export async function loadSettings() {
+    if (!db) return { password: 'admin123' };
     try {
         const docSnap = await getDoc(doc(db, 'settings', 'admin'));
         if (docSnap.exists()) return docSnap.data();
@@ -699,6 +775,7 @@ export async function loadSettings() {
 // ============================================================
 
 export async function saveAllData(data) {
+    if (!db) return false;
     try {
         const batch = writeBatch(db);
 
@@ -726,6 +803,7 @@ export async function saveAllData(data) {
 }
 
 export async function savePage(pageName, pageData) {
+    if (!db) return false;
     try {
         await setDoc(doc(db, 'pages', pageName), pageData, { merge: true });
         return true;
@@ -736,6 +814,7 @@ export async function savePage(pageName, pageData) {
 }
 
 export async function addTriviaItem(question, answer) {
+    if (!db) return null;
     try {
         const triviaRef = collection(db, 'trivia');
         const snapshot = await getDocs(triviaRef);
@@ -754,6 +833,7 @@ export async function addTriviaItem(question, answer) {
 }
 
 export async function deleteTriviaItem(questionId) {
+    if (!db) return false;
     try {
         const triviaRef = collection(db, 'trivia');
         const snapshot = await getDocs(triviaRef);
@@ -771,6 +851,7 @@ export async function deleteTriviaItem(questionId) {
 }
 
 export async function updateExecutives(executivesData) {
+    if (!db) return false;
     try {
         await setDoc(doc(db, 'executives', 'all'), executivesData);
         return true;
@@ -781,6 +862,7 @@ export async function updateExecutives(executivesData) {
 }
 
 export async function updatePassword(newPassword) {
+    if (!db) return false;
     try {
         await setDoc(doc(db, 'settings', 'admin'), { password: newPassword }, { merge: true });
         return true;
@@ -795,12 +877,20 @@ export async function updatePassword(newPassword) {
 // ============================================================
 
 export function subscribeToPage(pageName, callback) {
+    if (!db) {
+        setTimeout(() => callback(DEFAULT_DATA.pages[pageName] || null), 0);
+        return () => {};
+    }
     return onSnapshot(doc(db, 'pages', pageName), (docSnap) => {
         callback(docSnap.exists() ? docSnap.data() : (DEFAULT_DATA.pages[pageName] || null));
     });
 }
 
 export function subscribeToTrivia(callback) {
+    if (!db) {
+        setTimeout(() => callback(DEFAULT_DATA.trivia), 0);
+        return () => {};
+    }
     return onSnapshot(query(collection(db, 'trivia'), orderBy('id')), (snapshot) => {
         const trivia = [];
         snapshot.forEach(doc => trivia.push(doc.data()));
@@ -809,6 +899,10 @@ export function subscribeToTrivia(callback) {
 }
 
 export function subscribeToExecutives(callback) {
+    if (!db) {
+        setTimeout(() => callback(DEFAULT_DATA.executives), 0);
+        return () => {};
+    }
     return onSnapshot(doc(db, 'executives', 'all'), (docSnap) => {
         if (docSnap.exists()) {
             const data = docSnap.data();
@@ -825,6 +919,10 @@ export function subscribeToExecutives(callback) {
 }
 
 export function subscribeToCustomRoles(callback) {
+    if (!db) {
+        setTimeout(() => callback({}), 0);
+        return () => {};
+    }
     return onSnapshot(doc(db, 'config', 'customRoles'), (docSnap) => {
         callback(docSnap.exists() ? (docSnap.data().roles || {}) : {});
     });
@@ -867,7 +965,6 @@ export default {
     saveAllData, savePage, addTriviaItem, deleteTriviaItem,
     updateExecutives, updatePassword,
     addCustomRole, deleteCustomRole, saveCustomRoles,
-    // Storage / photo helpers
     uploadImage, deleteImage, extractStoragePath,
     uploadInauguralPhoto, removeInauguralPhoto,
     subscribeToPage, subscribeToTrivia, subscribeToExecutives, subscribeToCustomRoles,
