@@ -259,11 +259,14 @@
             font-family: "Inter", sans-serif;
             display: inline-flex; align-items: center; gap: 6px;
         }
+        .btn:disabled {
+            opacity: 0.6; cursor: not-allowed; transform: none !important;
+        }
         .btn-primary {
             background: linear-gradient(135deg, var(--color-secondary), #1b5e20);
             color: var(--color-white);
         }
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 4px 20px rgba(46,125,50,0.30);
         }
@@ -560,7 +563,7 @@
             font-size: 0.8rem; margin-top: 8px;
         }
 
-        /* ===== ADD ROLE MODAL ===== */
+        /* ===== MODALS ===== */
         .modal-overlay {
             position: fixed; inset: 0; z-index: 5000;
             background: rgba(0,0,0,0.7);
@@ -576,6 +579,7 @@
             padding: 32px 28px;
             max-width: 480px; width: 100%;
             box-shadow: var(--shadow-card);
+            max-height: 90vh; overflow-y: auto;
         }
         .modal-box h3 {
             font-family: "Playfair Display", serif;
@@ -662,7 +666,7 @@
         </div>
     </div>
 
-    <!-- ===== PHOTO UPLOAD MODAL (for Inaugural Executives) ===== -->
+    <!-- ===== PHOTO UPLOAD MODAL ===== -->
     <div class="modal-overlay" id="photoModal">
         <div class="modal-box photo-modal-box">
             <h3 id="photoModalTitle">📷 Upload Photo</h3>
@@ -732,13 +736,6 @@
     <!-- ============================================================ -->
     <script type="module">
         // ============================================================
-        // CLOUDINARY CONFIG (admin panel can read it directly)
-        // ============================================================
-        const CLOUDINARY_CLOUD_NAME = 'kxjo6bh6';
-        const CLOUDINARY_UPLOAD_PRESET = 'gtmb_unsigned';
-        const CLOUDINARY_FOLDER = 'executives';
-
-        // ============================================================
         // IMPORTS
         // ============================================================
         import {
@@ -756,6 +753,7 @@
             updatePassword,
             escapeHtml,
             showToast,
+            uploadImage,
             DEFAULT_DATA
         } from './script.js';
 
@@ -772,8 +770,11 @@
         let photoModalIndex = -1;
         let photoModalFile = null;
 
+        // Pending event flyer (module-scoped — survives across function calls)
+        let pendingFlyerFile = null;
+
         // ============================================================
-        // DEFAULT EXECUTIVE ROLES (built-in)
+        // DEFAULT EXECUTIVE ROLES
         // ============================================================
         const DEFAULT_EXECUTIVE_ROLES = {
             inaugural: { label: 'Inaugural Excos', icon: '🏆' },
@@ -823,63 +824,8 @@
             showToast(message, isError);
         }
 
-        function sanitizePathSegment(str) {
-            return String(str || '')
-                .toLowerCase()
-                .replace(/[^a-z0-9._-]+/g, '_')
-                .replace(/^_+|_+$/g, '')
-                .slice(0, 60) || 'file';
-        }
-
         // ============================================================
-        // CLOUDINARY UPLOAD
-        // ============================================================
-        async function uploadToCloudinary(file, basePath) {
-            if (!file) return { success: false, error: 'No file provided' };
-            if (!file.type.startsWith('image/')) {
-                return { success: false, error: 'Only image files are allowed' };
-            }
-            if (file.size > 2 * 1024 * 1024) {
-                return { success: false, error: 'File must be under 2MB' };
-            }
-
-            try {
-                const publicId = `${CLOUDINARY_FOLDER}/${sanitizePathSegment(basePath)}_${Date.now()}`;
-
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-                formData.append('public_id', publicId);
-
-                console.log('📤 Uploading to Cloudinary:', publicId);
-
-                const response = await fetch(
-                    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-                    { method: 'POST', body: formData }
-                );
-
-                if (!response.ok) {
-                    const errText = await response.text();
-                    console.error('❌ Cloudinary HTTP error:', response.status, errText);
-                    return { success: false, error: `Cloudinary error ${response.status}: ${errText}` };
-                }
-
-                const data = await response.json();
-                console.log('✅ Cloudinary upload complete:', data.secure_url);
-
-                return {
-                    success: true,
-                    url: data.secure_url,
-                    publicId: data.public_id
-                };
-            } catch (error) {
-                console.error('❌ Cloudinary upload failed:', error);
-                return { success: false, error: error.message || 'Unknown error' };
-            }
-        }
-
-        // ============================================================
-        // AUTH - Login
+        // AUTH
         // ============================================================
         const loginBtn = document.getElementById('loginBtn');
         const emailInput = document.getElementById('emailInput');
@@ -917,9 +863,6 @@
         passwordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') loginBtn.click(); });
         emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') loginBtn.click(); });
 
-        // ============================================================
-        // AUTH - Logout
-        // ============================================================
         document.getElementById('logoutBtn').addEventListener('click', async function() {
             await signOut();
             localStorage.removeItem('gtmb_admin_logged_in');
@@ -927,9 +870,6 @@
             toast('Logged out successfully');
         });
 
-        // ============================================================
-        // AUTH - State Listener
-        // ============================================================
         onAuthChange(async (user) => {
             if (user) {
                 const admin = await isAdmin(user);
@@ -946,9 +886,6 @@
             }
         });
 
-        // ============================================================
-        // CHECK AUTH & LOAD DATA
-        // ============================================================
         async function checkAuth() {
             const user = getCurrentUser();
             if (user && await isAdmin(user)) {
@@ -977,7 +914,7 @@
         }
 
         // ============================================================
-        // SIDEBAR NAVIGATION
+        // SIDEBAR NAV
         // ============================================================
         const navItems = document.querySelectorAll('.sidebar .nav-item:not(.logout-btn)');
         navItems.forEach(item => {
@@ -1086,7 +1023,7 @@
                             <div>👥 Executives: <strong style="color:var(--color-white);">${totalExecs}</strong> across ${totalRoles} roles</div>
                             <div>📅 Past Events: <strong style="color:var(--color-white);">${totalPastEvents}</strong> recorded</div>
                             <div>📅 Upcoming Events: <strong style="color:var(--color-white);">${totalUpcoming}</strong> scheduled</div>
-                            <div>☁️ Media: <strong style="color:var(--color-white);">Cloudinary</strong> (${CLOUDINARY_CLOUD_NAME})</div>
+                            <div>☁️ Media: <strong style="color:var(--color-white);">Cloudinary</strong></div>
                         </div>
                     </div>
                     <div class="card">
@@ -1102,9 +1039,6 @@
             `;
         }
 
-        // ============================================================
-        // NAVIGATE HELPER
-        // ============================================================
         window.navigateTo = function(page) {
             navItems.forEach(n => n.classList.remove('active'));
             const target = document.querySelector(`.nav-item[data-page="${page}"]`);
@@ -1112,9 +1046,6 @@
             renderPage(page);
         };
 
-        // ============================================================
-        // EXPORT DATA
-        // ============================================================
         window.exportData = function() {
             if (!appData) return;
             const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
@@ -1428,7 +1359,7 @@
                 <div class="card">
                     <div class="card-title">Executive Management</div>
                     <p style="color:var(--color-text-muted);font-size:0.9rem;margin-bottom:12px;">
-                        Manage executives in the <strong>Executives</strong> section from the sidebar. Upload photos for the Inaugural Executives there.
+                        Manage executives in the <strong>Executives</strong> section from the sidebar.
                     </p>
                     <button class="btn btn-primary" onclick="window.navigateTo('executives')">Go to Executives →</button>
                 </div>
@@ -1474,7 +1405,7 @@
                                     <div class="item-row">
                                         <div class="item-info">
                                             <div class="title">${escapeHtml(event.title) || 'Untitled Event'}</div>
-                                            <div class="meta">${escapeHtml(event.subtitle) || ''} ${event.flyerImage ? '🖼️' : ''}</div>
+                                            <div class="meta">${escapeHtml(event.subtitle) || ''} ${event.flyerImage ? '🖼️ flyer attached' : ''}</div>
                                         </div>
                                         <div class="item-actions">
                                             <button class="btn btn-primary btn-sm" onclick="window.editUpcomingEvent(${index})">✏️ Edit</button>
@@ -1522,7 +1453,7 @@
                             <input id="formCtaInput" placeholder="Let us know you're coming →" />
                         </div>
                         <div class="form-group">
-                            <label>Event Flyer / Image</label>
+                            <label>Event Flyer / Image (uploaded to Cloudinary)</label>
                             <div class="flyer-upload-area">
                                 <label class="upload-label" for="formFlyerInput">📸 Choose Image (max 2MB)</label>
                                 <input type="file" id="formFlyerInput" accept="image/*" onchange="window.handleFormFlyerUpload(event)" />
@@ -1532,7 +1463,7 @@
                                 </div>
                                 <button class="remove-flyer-btn" id="formRemoveFlyerBtn" style="display:none;" onclick="window.removeFormFlyer()">🗑️ Remove Flyer</button>
                             </div>
-                            <div class="helper">Upload a flyer image (JPG, PNG, GIF). Will be uploaded to Cloudinary.</div>
+                            <div class="helper">Image will be uploaded to Cloudinary when you click Save Event.</div>
                         </div>
                         <div class="btn-group">
                             <button class="btn btn-primary" onclick="window.saveUpcomingEventForm()">💾 Save Event</button>
@@ -1562,6 +1493,7 @@
 
         window.addUpcomingEvent = function() {
             editingEventIndex = -1;
+            pendingFlyerFile = null;
             document.getElementById('formTitle').textContent = 'Add New Upcoming Event';
             document.getElementById('editEventIndex').value = -1;
             clearEventForm();
@@ -1571,7 +1503,9 @@
 
         window.editUpcomingEvent = function(index) {
             editingEventIndex = index;
+            pendingFlyerFile = null;
             const event = appData.pages.events.upcomingEvents[index];
+
             document.getElementById('formTitle').textContent = 'Edit Upcoming Event';
             document.getElementById('editEventIndex').value = index;
             document.getElementById('formTitleInput').value = event.title || '';
@@ -1590,7 +1524,7 @@
                 const img = document.getElementById('formFlyerPreviewImage');
                 img.src = event.flyerImage;
                 preview.classList.add('show');
-                document.getElementById('formFlyerFileName').textContent = '✅ Image uploaded';
+                document.getElementById('formFlyerFileName').textContent = '✅ Current flyer loaded (replace to change)';
                 document.getElementById('formRemoveFlyerBtn').style.display = 'inline-block';
             } else {
                 document.getElementById('formFlyerPreview').classList.remove('show');
@@ -1616,7 +1550,7 @@
             document.getElementById('formFlyerInput').value = '';
             document.getElementById('formRemoveFlyerBtn').style.display = 'none';
             document.getElementById('editEventIndex').value = -1;
-            delete document.getElementById('editEventIndex').dataset.flyer;
+            pendingFlyerFile = null;
         }
 
         window.cancelUpcomingEventForm = function() {
@@ -1624,49 +1558,7 @@
             clearEventForm();
         };
 
-        window.saveUpcomingEventForm = async function() {
-            const index = parseInt(document.getElementById('editEventIndex').value);
-            const title = document.getElementById('formTitleInput').value.trim();
-            if (!title) {
-                toast('Please enter an event title.', true);
-                return;
-            }
-
-            const eventData = {
-                title: title,
-                subtitle: document.getElementById('formSubtitleInput').value.trim(),
-                label: document.getElementById('formLabelInput').value.trim(),
-                sectionTitle: document.getElementById('formSectionTitleInput').value.trim(),
-                sectionDesc: document.getElementById('formSectionDescInput').value.trim(),
-                features: document.getElementById('formFeaturesInput').value.split(',').map(s => s.trim()).filter(s => s),
-                details: document.getElementById('formDetailsInput').value.split('\n').filter(line => line.trim()).map(line => {
-                    const parts = line.split('|').map(s => s.trim());
-                    return { label: parts[0] || '', venue: parts[1] || '', location: parts[2] || '', time: parts[3] || '' };
-                }),
-                ctaText: document.getElementById('formCtaInput').value.trim() || 'Learn More →',
-                flyerImage: document.getElementById('editEventIndex').dataset.flyer || null
-            };
-
-            if (index === -1) {
-                appData.pages.events.upcomingEvents.push(eventData);
-            } else {
-                appData.pages.events.upcomingEvents[index] = eventData;
-            }
-
-            await saveAllData(appData);
-            cancelUpcomingEventForm();
-            renderPage('events');
-            toast('Upcoming event saved!');
-        };
-
-        window.deleteUpcomingEvent = async function(index) {
-            if (!confirm('Delete this upcoming event?')) return;
-            appData.pages.events.upcomingEvents.splice(index, 1);
-            await saveAllData(appData);
-            renderPage('events');
-            toast('Event deleted!');
-        };
-
+        // ---- FLYER UPLOAD: store File object, upload on Save ----
         window.handleFormFlyerUpload = function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1680,34 +1572,109 @@
                 event.target.value = '';
                 return;
             }
-            // Show local preview; actual upload happens on Save
+
+            // Store File object at module scope (this is the key fix)
+            pendingFlyerFile = file;
+
+            // Show local preview
             const reader = new FileReader();
             reader.onload = function(e) {
-                document.getElementById('editEventIndex').dataset.flyerFile = 'true';
-                document.getElementById('editEventIndex').dataset.flyerPreview = e.target.result;
-                document.getElementById('formFlyerFileName').textContent = '✅ ' + file.name + ' (will upload on save)';
+                document.getElementById('formFlyerFileName').textContent = '✅ ' + file.name + ' (uploads on save)';
                 const preview = document.getElementById('formFlyerPreview');
                 const img = document.getElementById('formFlyerPreviewImage');
                 img.src = e.target.result;
                 preview.classList.add('show');
                 document.getElementById('formRemoveFlyerBtn').style.display = 'inline-block';
-                // Store the actual File object in a module-scoped variable
-                window._pendingFlyerFile = file;
-                toast('Image selected! It will upload when you click Save.');
+                toast('Image selected! Will upload to Cloudinary on Save.');
             };
             reader.readAsDataURL(file);
         };
 
         window.removeFormFlyer = function() {
+            pendingFlyerFile = null;
             document.getElementById('formFlyerFileName').textContent = 'No file selected';
             document.getElementById('formFlyerPreview').classList.remove('show');
             document.getElementById('formFlyerPreviewImage').src = '';
             document.getElementById('formFlyerInput').value = '';
             document.getElementById('formRemoveFlyerBtn').style.display = 'none';
-            delete document.getElementById('editEventIndex').dataset.flyer;
-            delete document.getElementById('editEventIndex').dataset.flyerFile;
-            window._pendingFlyerFile = null;
-            toast('Flyer removed.');
+            toast('Flyer cleared. (Existing flyer will be removed on Save.)');
+        };
+
+        window.saveUpcomingEventForm = async function() {
+            const index = parseInt(document.getElementById('editEventIndex').value);
+            const title = document.getElementById('formTitleInput').value.trim();
+            if (!title) {
+                toast('Please enter an event title.', true);
+                return;
+            }
+
+            const saveBtn = document.querySelector('#upcomingEventForm .btn-primary');
+            const originalText = saveBtn.textContent;
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ Saving...';
+
+            try {
+                let flyerUrl = null;
+
+                // If a new file was selected, upload to Cloudinary
+                if (pendingFlyerFile) {
+                    toast('Uploading flyer to Cloudinary...');
+                    const basePath = `event_${index === -1 ? Date.now() : index}`;
+                    const result = await uploadImage(pendingFlyerFile, basePath, 'events');
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to upload flyer');
+                    }
+                    flyerUrl = result.url;
+                    console.log('✅ Flyer uploaded:', flyerUrl);
+                } else if (index !== -1) {
+                    // Keep existing flyer when editing (unless user removed it)
+                    const existing = appData.pages.events.upcomingEvents[index]?.flyerImage;
+                    // If the preview was cleared (no visible flyer + no pending file), set to null
+                    const previewCleared = !document.getElementById('formFlyerPreview').classList.contains('show');
+                    flyerUrl = previewCleared ? null : (existing || null);
+                }
+
+                const eventData = {
+                    title: title,
+                    subtitle: document.getElementById('formSubtitleInput').value.trim(),
+                    label: document.getElementById('formLabelInput').value.trim(),
+                    sectionTitle: document.getElementById('formSectionTitleInput').value.trim(),
+                    sectionDesc: document.getElementById('formSectionDescInput').value.trim(),
+                    features: document.getElementById('formFeaturesInput').value.split(',').map(s => s.trim()).filter(s => s),
+                    details: document.getElementById('formDetailsInput').value.split('\n').filter(line => line.trim()).map(line => {
+                        const parts = line.split('|').map(s => s.trim());
+                        return { label: parts[0] || '', venue: parts[1] || '', location: parts[2] || '', time: parts[3] || '' };
+                    }),
+                    ctaText: document.getElementById('formCtaInput').value.trim() || 'Learn More →',
+                    flyerImage: flyerUrl
+                };
+
+                if (index === -1) {
+                    appData.pages.events.upcomingEvents.push(eventData);
+                } else {
+                    appData.pages.events.upcomingEvents[index] = eventData;
+                }
+
+                await saveAllData(appData);
+                pendingFlyerFile = null;
+                cancelUpcomingEventForm();
+                renderPage('events');
+                toast('Upcoming event saved!');
+            } catch (err) {
+                console.error('Save event failed:', err);
+                toast(err.message || 'Failed to save event', true);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }
+        };
+
+        window.deleteUpcomingEvent = async function(index) {
+            if (!confirm('Delete this upcoming event?')) return;
+            appData.pages.events.upcomingEvents.splice(index, 1);
+            await saveAllData(appData);
+            renderPage('events');
+            toast('Event deleted!');
         };
 
         window.saveEventsHero = async function() {
@@ -1954,7 +1921,6 @@
             `;
         }
 
-        // ===== REORDER =====
         window.moveExecutive = async function(role, index, direction) {
             const items = appData.executives[role];
             if (!items) return;
@@ -2215,40 +2181,31 @@
             saveBtn.textContent = '⏳ Saving...';
 
             try {
-                // Case 1: Remove
                 if (wantRemove && !file) {
                     target.photo = null;
                     await updateExecutives(appData.executives);
                     toast('Photo removed!');
-                }
-                // Case 2: Upload new file
-                else if (file) {
+                } else if (file) {
                     const basePath = target.name || `exec_${index}`;
-                    const result = await uploadToCloudinary(file, basePath);
-
+                    const result = await uploadImage(file, basePath, 'executives/inaugural');
                     if (!result.success) {
                         throw new Error(result.error || 'Failed to upload');
                     }
-
                     target.photo = result.url;
                     await updateExecutives(appData.executives);
                     toast('Photo uploaded to Cloudinary!');
-                }
-                // Case 3: Nothing changed
-                else {
+                } else {
                     toast('No changes to save.', true);
                     saveBtn.disabled = false;
                     saveBtn.textContent = originalText;
                     return;
                 }
 
-                // Reset & re-render
                 photoModalRole = null;
                 photoModalIndex = -1;
                 photoModalFile = null;
                 modal.classList.remove('active');
                 renderPage('executives');
-
             } catch (err) {
                 console.error('Save photo failed:', err);
                 toast(err.message || 'Something went wrong.', true);
@@ -2294,14 +2251,10 @@
                 </div>
                 <div class="card">
                     <div class="card-title">Cloudinary Info</div>
-                    <div class="helper">All photos are uploaded to Cloudinary (free tier).</div>
+                    <div class="helper">All photos and flyers are uploaded to Cloudinary (free tier).</div>
                     <div style="margin-top:12px;font-size:0.9rem;color:var(--color-text-muted);">
-                        <div>☁️ Cloud Name: <strong style="color:var(--color-accent);">${CLOUDINARY_CLOUD_NAME}</strong></div>
-                        <div>📁 Folder: <strong style="color:var(--color-accent);">${CLOUDINARY_FOLDER}</strong></div>
-                        <div>🔓 Preset: <strong style="color:var(--color-accent);">${CLOUDINARY_UPLOAD_PRESET}</strong></div>
-                    </div>
-                    <div class="helper" style="margin-top:12px;">
-                        To manage or delete photos, visit your Cloudinary Media Library.
+                        <div>☁️ Cloud Name: <strong style="color:var(--color-accent);">kxjo6bh6</strong></div>
+                        <div>📁 Folders: <strong style="color:var(--color-accent);">executives/inaugural, events</strong></div>
                     </div>
                 </div>
                 <div class="card">
@@ -2313,7 +2266,7 @@
                     </div>
                     <div style="margin-top:12px;padding:12px;background:rgba(255,0,0,0.04);border-radius:6px;border:1px solid rgba(255,0,0,0.08);">
                         <p style="color:var(--color-text-muted);font-size:0.85rem;">
-                            <strong style="color:#ff6b6b;">⚠️ Warning:</strong> Resetting will delete all custom data and restore defaults. 
+                            <strong style="color:#ff6b6b;">⚠️ Warning:</strong> Resetting will delete all custom data and restore defaults.
                             Export your data first to keep a backup.
                         </p>
                     </div>
@@ -2393,7 +2346,7 @@
             try {
                 const data = JSON.parse(text);
                 if (!data.pages || !data.trivia || !data.executives) {
-                    toast('Invalid data structure. Missing pages, trivia, or executives.', true);
+                    toast('Invalid data structure.', true);
                     return;
                 }
                 const merged = { ...DEFAULT_DATA, ...data };
@@ -2412,7 +2365,7 @@
         };
 
         window.resetAllData = async function() {
-            if (!confirm('⚠️ Are you sure you want to reset ALL data to defaults? This cannot be undone!')) return;
+            if (!confirm('⚠️ Are you sure you want to reset ALL data to defaults?')) return;
             if (!confirm('Really? All your custom data will be lost!')) return;
             appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
             if (!appData.executives) appData.executives = {};
