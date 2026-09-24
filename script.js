@@ -41,14 +41,13 @@ const firebaseConfig = {
 
 // ============================================================
 // CLOUDINARY CONFIG
-// 👇 REPLACE THESE WITH YOUR ACTUAL VALUES FROM CLOUDINARY
 // ============================================================
-const CLOUDINARY_CLOUD_NAME = 'kxjo6bh6';       // e.g. 'dxxxxxx'
-const CLOUDINARY_UPLOAD_PRESET = 'gtmb_unsigned';           // your unsigned preset name
-const CLOUDINARY_FOLDER = 'executives';                     // folder inside Cloudinary
+export const CLOUDINARY_CLOUD_NAME = 'kxjo6bh6';
+export const CLOUDINARY_UPLOAD_PRESET = 'gtmb_unsigned';
+export const CLOUDINARY_FOLDER = 'executives';
 
 // ============================================================
-// INITIALIZE FIREBASE (each service guarded independently)
+// INITIALIZE FIREBASE (guarded)
 // ============================================================
 let app, db, auth;
 
@@ -70,7 +69,7 @@ try {
     console.error('❌ Failed to initialize Auth:', err);
 }
 
-// Enable offline persistence — non-blocking, non-fatal
+// Enable offline persistence (non-blocking)
 (async () => {
     if (!db) return;
     try {
@@ -81,13 +80,10 @@ try {
     }
 })();
 
-// ============================================================
-// EXPORT INSTANCES
-// ============================================================
 export { app, db, auth };
 
 // ============================================================
-// DEFAULT EXECUTIVE ROLES (built-in, non-deletable)
+// DEFAULT EXECUTIVE ROLES
 // ============================================================
 export const DEFAULT_EXECUTIVE_ROLES = {
     inaugural: { label: 'Inaugural Excos', icon: '🏆' },
@@ -104,10 +100,9 @@ export const DEFAULT_EXECUTIVE_ROLES = {
 };
 
 // ============================================================
-// UTILITY FUNCTIONS
+// UTILITIES
 // ============================================================
 
-/** Escape HTML to prevent XSS (for plain text) */
 export function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -115,7 +110,6 @@ export function escapeHtml(text) {
     return div.innerHTML;
 }
 
-/** Sanitize HTML – allow only safe tags and attributes */
 export function sanitizeHtml(html) {
     if (!html) return '';
     const allowedTags = [
@@ -156,7 +150,6 @@ export function sanitizeHtml(html) {
     return div.innerHTML;
 }
 
-/** Toast notification */
 export function showToast(message, isError = false) {
     const toast = document.getElementById('toast');
     if (!toast) {
@@ -175,7 +168,6 @@ export function showToast(message, isError = false) {
     }, 3000);
 }
 
-/** Sanitize a string for use as a Cloudinary public_id segment */
 function sanitizePathSegment(str) {
     return String(str || '')
         .toLowerCase()
@@ -267,16 +259,17 @@ export async function adminLogin(password) {
 }
 
 // ============================================================
-// CLOUDINARY — IMAGE UPLOAD / DELETE
+// CLOUDINARY — IMAGE UPLOAD
 // ============================================================
 
 /**
  * Upload an image file to Cloudinary.
  * @param {File} file
- * @param {string} basePath - base name for the public_id, e.g. "emmanuel_andrew"
- * @returns {Promise<{success, url?, path?, error?}>}
+ * @param {string} basePath - base name for the public_id
+ * @param {string} [folder] - optional folder override (defaults to CLOUDINARY_FOLDER)
+ * @returns {Promise<{success, url?, publicId?, error?}>}
  */
-export async function uploadImage(file, basePath) {
+export async function uploadImage(file, basePath, folder = CLOUDINARY_FOLDER) {
     if (!file) return { success: false, error: 'No file provided' };
     if (!file.type.startsWith('image/')) {
         return { success: false, error: 'Only image files are allowed' };
@@ -293,7 +286,7 @@ export async function uploadImage(file, basePath) {
     }
 
     try {
-        const publicId = `${CLOUDINARY_FOLDER}/${sanitizePathSegment(basePath)}_${Date.now()}`;
+        const publicId = `${folder}/${sanitizePathSegment(basePath)}_${Date.now()}`;
 
         const formData = new FormData();
         formData.append('file', file);
@@ -318,8 +311,8 @@ export async function uploadImage(file, basePath) {
 
         return {
             success: true,
-            url: data.secure_url,           // HTTPS URL — store this in Firestore
-            path: data.public_id             // For reference; can't delete client-side
+            url: data.secure_url,
+            publicId: data.public_id
         };
     } catch (error) {
         console.error('❌ Cloudinary upload failed:', error);
@@ -328,9 +321,7 @@ export async function uploadImage(file, basePath) {
 }
 
 /**
- * Cloudinary unsigned uploads CANNOT delete files client-side.
- * This is a no-op that logs a warning — old files remain in your
- * Cloudinary library. Clean them up manually from the Media Library.
+ * Delete is a no-op for unsigned uploads — file remains in Cloudinary library.
  */
 export async function deleteImage(path) {
     if (!path) return { success: true };
@@ -339,17 +330,15 @@ export async function deleteImage(path) {
 }
 
 /**
- * Detect if a URL is a Cloudinary URL (used for compatibility with old Firebase URLs).
+ * Detect the Cloudinary public_id from a Cloudinary URL.
  */
 export function extractStoragePath(downloadUrl) {
     if (!downloadUrl || typeof downloadUrl !== 'string') return null;
     try {
         const url = new URL(downloadUrl);
         if (url.hostname.includes('res.cloudinary.com')) {
-            // Extract public_id from pathname like /cloud/image/upload/v123/executives/xyz.jpg
             const parts = url.pathname.split('/upload/');
             if (parts[1]) {
-                // Strip version prefix like "v1699123456/"
                 return parts[1].replace(/^v\d+\//, '');
             }
         }
@@ -363,19 +352,12 @@ export function extractStoragePath(downloadUrl) {
 // PHOTO HELPERS (Inaugural Executives)
 // ============================================================
 
-/**
- * Upload a new photo for an inaugural executive (by index) and store its URL.
- * Old Cloudinary file is left orphaned (unsigned upload limitation).
- */
 export async function uploadInauguralPhoto(index, file) {
     if (!db) return { success: false, error: 'Firestore not initialized' };
-
     try {
         const docRef = doc(db, 'executives', 'all');
         const snap = await getDoc(docRef);
-        if (!snap.exists()) {
-            return { success: false, error: 'Executives doc not found' };
-        }
+        if (!snap.exists()) return { success: false, error: 'Executives doc not found' };
         const execs = snap.data();
         if (!execs.inaugural || !execs.inaugural[index]) {
             return { success: false, error: 'Executive index out of range' };
@@ -384,16 +366,13 @@ export async function uploadInauguralPhoto(index, file) {
         const exec = execs.inaugural[index];
         const basePath = sanitizePathSegment(exec.name || `exec_${index}`);
 
-        // 1. Upload new file to Cloudinary
-        const uploadResult = await uploadImage(file, basePath);
+        const uploadResult = await uploadImage(file, basePath, 'executives/inaugural');
         if (!uploadResult.success) {
             return { success: false, error: uploadResult.error };
         }
 
-        // 2. Update Firestore with new URL
         exec.photo = uploadResult.url;
         await setDoc(docRef, execs);
-
         return { success: true, url: uploadResult.url };
     } catch (error) {
         console.error('❌ Error uploading inaugural photo:', error);
@@ -401,33 +380,19 @@ export async function uploadInauguralPhoto(index, file) {
     }
 }
 
-/**
- * Remove an inaugural executive's photo URL from Firestore.
- * (Cloudinary file stays in your library — clean up manually.)
- */
 export async function removeInauguralPhoto(index) {
     if (!db) return { success: false, error: 'Firestore not initialized' };
     try {
         const docRef = doc(db, 'executives', 'all');
         const snap = await getDoc(docRef);
-        if (!snap.exists()) {
-            return { success: false, error: 'Executives doc not found' };
-        }
+        if (!snap.exists()) return { success: false, error: 'Executives doc not found' };
         const execs = snap.data();
         if (!execs.inaugural || !execs.inaugural[index]) {
             return { success: false, error: 'Executive index out of range' };
         }
 
-        const oldPhoto = execs.inaugural[index].photo;
-        const oldPath = extractStoragePath(oldPhoto);
-        if (oldPath) {
-            console.warn('⚠️ Cloudinary file will remain in your library:', oldPath);
-        }
-
-        // Clear Firestore field
         execs.inaugural[index].photo = null;
         await setDoc(docRef, execs);
-
         return { success: true };
     } catch (error) {
         console.error('Error removing inaugural photo:', error);
@@ -435,14 +400,10 @@ export async function removeInauguralPhoto(index) {
     }
 }
 
-/**
- * Convenience: load only inaugural executives (with photos normalized).
- */
 export async function loadInauguralExecutives() {
     if (!db) return [];
     try {
-        const docRef = doc(db, 'executives', 'all');
-        const snap = await getDoc(docRef);
+        const snap = await getDoc(doc(db, 'executives', 'all'));
         if (snap.exists()) {
             const data = snap.data();
             return (data.inaugural || []).map(item => ({
@@ -458,17 +419,30 @@ export async function loadInauguralExecutives() {
 }
 
 // ============================================================
+// EVENT FLYER UPLOAD (Cloudinary)
+// ============================================================
+
+/**
+ * Upload an event flyer to Cloudinary.
+ * Stored under `executives/events` folder (or configure separately).
+ * @param {File} file
+ * @param {string} [titleHint] - optional title to build a readable public_id
+ * @returns {Promise<{success, url?, publicId?, error?}>}
+ */
+export async function uploadEventFlyer(file, titleHint = 'event') {
+    const basePath = `event_${sanitizePathSegment(titleHint)}`;
+    return uploadImage(file, basePath, 'events');
+}
+
+// ============================================================
 // CUSTOM ROLES
 // ============================================================
 
 export async function loadCustomRoles() {
     if (!db) return {};
     try {
-        const ref = doc(db, 'config', 'customRoles');
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-            return snap.data().roles || {};
-        }
+        const snap = await getDoc(doc(db, 'config', 'customRoles'));
+        if (snap.exists()) return snap.data().roles || {};
         return {};
     } catch (error) {
         console.error('Error loading custom roles:', error);
@@ -479,8 +453,7 @@ export async function loadCustomRoles() {
 export async function saveCustomRoles(customRoles) {
     if (!db) return false;
     try {
-        const ref = doc(db, 'config', 'customRoles');
-        await setDoc(ref, { roles: customRoles || {} }, { merge: true });
+        await setDoc(doc(db, 'config', 'customRoles'), { roles: customRoles || {} }, { merge: true });
         return true;
     } catch (error) {
         console.error('Error saving custom roles:', error);
@@ -491,9 +464,7 @@ export async function saveCustomRoles(customRoles) {
 export async function addCustomRole(key, label, icon = '🏅') {
     try {
         const customRoles = await loadCustomRoles();
-        if (customRoles[key]) {
-            return { success: false, error: 'Role key already exists' };
-        }
+        if (customRoles[key]) return { success: false, error: 'Role key already exists' };
         customRoles[key] = { label, icon };
         await saveCustomRoles(customRoles);
         return { success: true, roles: customRoles };
@@ -506,9 +477,7 @@ export async function deleteCustomRole(key) {
     if (!db) return { success: false, error: 'Firestore not initialized' };
     try {
         const customRoles = await loadCustomRoles();
-        if (!customRoles[key]) {
-            return { success: false, error: 'Role not found' };
-        }
+        if (!customRoles[key]) return { success: false, error: 'Role not found' };
         delete customRoles[key];
         await saveCustomRoles(customRoles);
 
@@ -533,7 +502,7 @@ export async function getAllRoles() {
 }
 
 // ============================================================
-// DEFAULT DATA STRUCTURE
+// DEFAULT DATA
 // ============================================================
 export const DEFAULT_DATA = {
     pages: {
@@ -956,7 +925,9 @@ export default {
     addCustomRole, deleteCustomRole, saveCustomRoles,
     uploadImage, deleteImage, extractStoragePath,
     uploadInauguralPhoto, removeInauguralPhoto,
+    uploadEventFlyer,
     subscribeToPage, subscribeToTrivia, subscribeToExecutives, subscribeToCustomRoles,
     escapeHtml, sanitizeHtml, showToast,
-    DEFAULT_DATA, DEFAULT_EXECUTIVE_ROLES
+    DEFAULT_DATA, DEFAULT_EXECUTIVE_ROLES,
+    CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET, CLOUDINARY_FOLDER
 };
