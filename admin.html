@@ -677,7 +677,7 @@
                 <div class="file-name" id="photoModalFileName" style="color:var(--color-text-muted);font-size:0.85rem;margin-top:8px;">
                     No file selected
                 </div>
-                <div class="helper" style="margin-top:6px;">Image will be uploaded to Firebase Storage.</div>
+                <div class="helper" style="margin-top:6px;">Image will be uploaded to Cloudinary.</div>
             </div>
             <div class="modal-actions" style="justify-content:space-between;">
                 <button class="btn btn-danger btn-sm" id="photoModalRemoveBtn" onclick="window.removeModalPhoto()" style="display:none;">
@@ -732,6 +732,13 @@
     <!-- ============================================================ -->
     <script type="module">
         // ============================================================
+        // CLOUDINARY CONFIG (admin panel can read it directly)
+        // ============================================================
+        const CLOUDINARY_CLOUD_NAME = 'kxjo6bh6';
+        const CLOUDINARY_UPLOAD_PRESET = 'gtmb_unsigned';
+        const CLOUDINARY_FOLDER = 'executives';
+
+        // ============================================================
         // IMPORTS
         // ============================================================
         import {
@@ -749,8 +756,6 @@
             updatePassword,
             escapeHtml,
             showToast,
-            uploadInauguralPhoto,
-            removeInauguralPhoto,
             DEFAULT_DATA
         } from './script.js';
 
@@ -816,6 +821,61 @@
 
         function toast(message, isError = false) {
             showToast(message, isError);
+        }
+
+        function sanitizePathSegment(str) {
+            return String(str || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9._-]+/g, '_')
+                .replace(/^_+|_+$/g, '')
+                .slice(0, 60) || 'file';
+        }
+
+        // ============================================================
+        // CLOUDINARY UPLOAD
+        // ============================================================
+        async function uploadToCloudinary(file, basePath) {
+            if (!file) return { success: false, error: 'No file provided' };
+            if (!file.type.startsWith('image/')) {
+                return { success: false, error: 'Only image files are allowed' };
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                return { success: false, error: 'File must be under 2MB' };
+            }
+
+            try {
+                const publicId = `${CLOUDINARY_FOLDER}/${sanitizePathSegment(basePath)}_${Date.now()}`;
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                formData.append('public_id', publicId);
+
+                console.log('📤 Uploading to Cloudinary:', publicId);
+
+                const response = await fetch(
+                    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+                    { method: 'POST', body: formData }
+                );
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    console.error('❌ Cloudinary HTTP error:', response.status, errText);
+                    return { success: false, error: `Cloudinary error ${response.status}: ${errText}` };
+                }
+
+                const data = await response.json();
+                console.log('✅ Cloudinary upload complete:', data.secure_url);
+
+                return {
+                    success: true,
+                    url: data.secure_url,
+                    publicId: data.public_id
+                };
+            } catch (error) {
+                console.error('❌ Cloudinary upload failed:', error);
+                return { success: false, error: error.message || 'Unknown error' };
+            }
         }
 
         // ============================================================
@@ -1026,7 +1086,7 @@
                             <div>👥 Executives: <strong style="color:var(--color-white);">${totalExecs}</strong> across ${totalRoles} roles</div>
                             <div>📅 Past Events: <strong style="color:var(--color-white);">${totalPastEvents}</strong> recorded</div>
                             <div>📅 Upcoming Events: <strong style="color:var(--color-white);">${totalUpcoming}</strong> scheduled</div>
-                            <div>📄 Pages: <strong style="color:var(--color-white);">5</strong> content pages</div>
+                            <div>☁️ Media: <strong style="color:var(--color-white);">Cloudinary</strong> (${CLOUDINARY_CLOUD_NAME})</div>
                         </div>
                     </div>
                     <div class="card">
@@ -1464,7 +1524,7 @@
                         <div class="form-group">
                             <label>Event Flyer / Image</label>
                             <div class="flyer-upload-area">
-                                <label class="upload-label" for="formFlyerInput">📸 Choose Image (max 5MB)</label>
+                                <label class="upload-label" for="formFlyerInput">📸 Choose Image (max 2MB)</label>
                                 <input type="file" id="formFlyerInput" accept="image/*" onchange="window.handleFormFlyerUpload(event)" />
                                 <div class="file-name" id="formFlyerFileName">No file selected</div>
                                 <div class="flyer-preview" id="formFlyerPreview">
@@ -1472,7 +1532,7 @@
                                 </div>
                                 <button class="remove-flyer-btn" id="formRemoveFlyerBtn" style="display:none;" onclick="window.removeFormFlyer()">🗑️ Remove Flyer</button>
                             </div>
-                            <div class="helper">Upload a flyer image (JPG, PNG, GIF). Will be displayed on the events page.</div>
+                            <div class="helper">Upload a flyer image (JPG, PNG, GIF). Will be uploaded to Cloudinary.</div>
                         </div>
                         <div class="btn-group">
                             <button class="btn btn-primary" onclick="window.saveUpcomingEventForm()">💾 Save Event</button>
@@ -1610,8 +1670,8 @@
         window.handleFormFlyerUpload = function(event) {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.size > 5 * 1024 * 1024) {
-                toast('File is too large. Please choose an image under 5MB.', true);
+            if (file.size > 2 * 1024 * 1024) {
+                toast('File is too large. Please choose an image under 2MB.', true);
                 event.target.value = '';
                 return;
             }
@@ -1620,17 +1680,20 @@
                 event.target.value = '';
                 return;
             }
+            // Show local preview; actual upload happens on Save
             const reader = new FileReader();
             reader.onload = function(e) {
-                const dataUrl = e.target.result;
-                document.getElementById('editEventIndex').dataset.flyer = dataUrl;
-                document.getElementById('formFlyerFileName').textContent = '✅ ' + file.name;
+                document.getElementById('editEventIndex').dataset.flyerFile = 'true';
+                document.getElementById('editEventIndex').dataset.flyerPreview = e.target.result;
+                document.getElementById('formFlyerFileName').textContent = '✅ ' + file.name + ' (will upload on save)';
                 const preview = document.getElementById('formFlyerPreview');
                 const img = document.getElementById('formFlyerPreviewImage');
-                img.src = dataUrl;
+                img.src = e.target.result;
                 preview.classList.add('show');
                 document.getElementById('formRemoveFlyerBtn').style.display = 'inline-block';
-                toast('Flyer uploaded!');
+                // Store the actual File object in a module-scoped variable
+                window._pendingFlyerFile = file;
+                toast('Image selected! It will upload when you click Save.');
             };
             reader.readAsDataURL(file);
         };
@@ -1642,6 +1705,8 @@
             document.getElementById('formFlyerInput').value = '';
             document.getElementById('formRemoveFlyerBtn').style.display = 'none';
             delete document.getElementById('editEventIndex').dataset.flyer;
+            delete document.getElementById('editEventIndex').dataset.flyerFile;
+            window._pendingFlyerFile = null;
             toast('Flyer removed.');
         };
 
@@ -1775,7 +1840,7 @@
         };
 
         // ============================================================
-        // EXECUTIVES EDITOR (with Add Role + Photo upload + Reorder)
+        // EXECUTIVES EDITOR
         // ============================================================
         function renderExecutivesEditor() {
             const allRoles = getAllRoles();
@@ -1813,7 +1878,7 @@
                                     <h4 style="color:var(--color-white);font-size:1rem;">
                                         ${roleInfo.icon} ${roleInfo.label}
                                         <span style="color:var(--color-text-muted);font-weight:400;font-size:0.85rem;">(${items.length})</span>
-                                        ${isInaugural ? '<span style="color:var(--color-accent);font-weight:400;font-size:0.75rem;margin-left:8px;">📷 Photos + Drag-free reorder</span>' : ''}
+                                        ${isInaugural ? '<span style="color:var(--color-accent);font-weight:400;font-size:0.75rem;margin-left:8px;">📷 Photos + Reorder</span>' : ''}
                                     </h4>
                                     ${isCustom ? `<button class="btn btn-danger btn-sm" onclick="window.deleteCustomRole('${role}')">🗑️ Delete Role</button>` : ''}
                                 </div>
@@ -1847,7 +1912,6 @@
             `;
         }
 
-        // Render inaugural executives with photo thumbnails, upload buttons, and reorder arrows
         function renderInauguralList(items) {
             if (!items || items.length === 0) {
                 return '<div class="empty-state">No inaugural executives yet.</div>';
@@ -1890,17 +1954,15 @@
             `;
         }
 
-        // ===== REORDER EXECUTIVES =====
+        // ===== REORDER =====
         window.moveExecutive = async function(role, index, direction) {
             const items = appData.executives[role];
             if (!items) return;
             const newIndex = index + direction;
             if (newIndex < 0 || newIndex >= items.length) return;
 
-            // Swap the two entries
             [items[index], items[newIndex]] = [items[newIndex], items[index]];
 
-            // Persist
             await updateExecutives(appData.executives);
             renderPage('executives');
             toast(`Moved "${items[newIndex].name}" ${direction < 0 ? 'up' : 'down'}`);
@@ -2028,14 +2090,6 @@
         window.deleteExecutive = async function(role, index) {
             if (!confirm('Delete this executive?')) return;
             if (appData.executives[role]) {
-                // If inaugural, try to delete associated photo from Storage first
-                if (role === 'inaugural') {
-                    try {
-                        await removeInauguralPhoto(index);
-                    } catch (e) {
-                        console.warn('Could not delete photo:', e);
-                    }
-                }
                 appData.executives[role].splice(index, 1);
                 await updateExecutives(appData.executives);
                 renderPage('executives');
@@ -2047,12 +2101,18 @@
         // PHOTO MODAL
         // ============================================================
         window.openPhotoModal = function(role, index) {
-            photoModalRole = role;
-            photoModalIndex = index;
             photoModalFile = null;
             document.getElementById('photoModal').dataset.removeExisting = 'false';
 
-            const exec = appData.executives[role][index];
+            const target = appData.executives?.[role]?.[index];
+            if (!target) {
+                toast('Executive not found. Please refresh.', true);
+                return;
+            }
+
+            photoModalRole = role;
+            photoModalIndex = index;
+
             const modal = document.getElementById('photoModal');
             const title = document.getElementById('photoModalTitle');
             const preview = document.getElementById('photoModalPreview');
@@ -2061,12 +2121,12 @@
             const removeBtn = document.getElementById('photoModalRemoveBtn');
             const fileInput = document.getElementById('photoModalInput');
 
-            title.textContent = `📷 Photo for ${exec.name}`;
+            title.textContent = `📷 Photo for ${target.name}`;
             fileInput.value = '';
             fileName.textContent = 'No file selected';
 
-            if (exec.photo) {
-                previewImg.src = exec.photo;
+            if (target.photo) {
+                previewImg.src = target.photo;
                 preview.classList.remove('no-photo');
                 previewImg.style.display = 'block';
                 fileName.textContent = '✅ Current photo loaded';
@@ -2083,6 +2143,7 @@
 
         window.closePhotoModal = function() {
             document.getElementById('photoModal').classList.remove('active');
+            document.getElementById('photoModal').dataset.removeExisting = 'false';
             photoModalRole = null;
             photoModalIndex = -1;
             photoModalFile = null;
@@ -2131,43 +2192,70 @@
         };
 
         window.saveModalPhoto = async function() {
-            if (photoModalRole === null || photoModalIndex < 0) return;
-
+            const role = photoModalRole;
+            const index = photoModalIndex;
+            const file = photoModalFile;
             const modal = document.getElementById('photoModal');
             const wantRemove = modal.dataset.removeExisting === 'true';
-            modal.dataset.removeExisting = 'false';
 
-            // Case 1: Remove existing photo
-            if (wantRemove && !photoModalFile) {
-                const result = await removeInauguralPhoto(photoModalIndex);
-                if (result.success) {
-                    appData = await loadAllData();
-                    window.closePhotoModal();
-                    renderPage('executives');
+            if (role === null || index < 0) {
+                toast('No executive selected. Please reopen the dialog.', true);
+                return;
+            }
+
+            const target = appData.executives?.[role]?.[index];
+            if (!target) {
+                toast('Executive not found. Please refresh.', true);
+                return;
+            }
+
+            const saveBtn = modal.querySelector('.btn-primary');
+            const originalText = saveBtn.textContent;
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ Saving...';
+
+            try {
+                // Case 1: Remove
+                if (wantRemove && !file) {
+                    target.photo = null;
+                    await updateExecutives(appData.executives);
                     toast('Photo removed!');
-                } else {
-                    toast('Error: ' + result.error, true);
                 }
-                return;
-            }
+                // Case 2: Upload new file
+                else if (file) {
+                    const basePath = target.name || `exec_${index}`;
+                    const result = await uploadToCloudinary(file, basePath);
 
-            // Case 2: Upload new file
-            if (photoModalFile) {
-                toast('Uploading...');
-                const result = await uploadInauguralPhoto(photoModalIndex, photoModalFile);
-                if (result.success) {
-                    appData = await loadAllData();
-                    window.closePhotoModal();
-                    renderPage('executives');
-                    toast('Photo uploaded!');
-                } else {
-                    toast('Error: ' + result.error, true);
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to upload');
+                    }
+
+                    target.photo = result.url;
+                    await updateExecutives(appData.executives);
+                    toast('Photo uploaded to Cloudinary!');
                 }
-                return;
-            }
+                // Case 3: Nothing changed
+                else {
+                    toast('No changes to save.', true);
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = originalText;
+                    return;
+                }
 
-            // Case 3: Nothing changed
-            toast('No changes to save.', true);
+                // Reset & re-render
+                photoModalRole = null;
+                photoModalIndex = -1;
+                photoModalFile = null;
+                modal.classList.remove('active');
+                renderPage('executives');
+
+            } catch (err) {
+                console.error('Save photo failed:', err);
+                toast(err.message || 'Something went wrong.', true);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+            }
         };
 
         // ============================================================
@@ -2203,6 +2291,18 @@
                     </div>
                     <button class="btn btn-primary" onclick="window.createAdmin()">➕ Create Admin User</button>
                     <div class="helper" style="margin-top:8px;">This will create a new user with admin privileges in Firestore.</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Cloudinary Info</div>
+                    <div class="helper">All photos are uploaded to Cloudinary (free tier).</div>
+                    <div style="margin-top:12px;font-size:0.9rem;color:var(--color-text-muted);">
+                        <div>☁️ Cloud Name: <strong style="color:var(--color-accent);">${CLOUDINARY_CLOUD_NAME}</strong></div>
+                        <div>📁 Folder: <strong style="color:var(--color-accent);">${CLOUDINARY_FOLDER}</strong></div>
+                        <div>🔓 Preset: <strong style="color:var(--color-accent);">${CLOUDINARY_UPLOAD_PRESET}</strong></div>
+                    </div>
+                    <div class="helper" style="margin-top:12px;">
+                        To manage or delete photos, visit your Cloudinary Media Library.
+                    </div>
                 </div>
                 <div class="card">
                     <div class="card-title">Data Management</div>
